@@ -7,7 +7,7 @@ const (
 	K_STATUS_DISABLE = 2000 // 禁用
 )
 
-type BasicModel struct {
+type BaseModel struct {
 	Id         int64      `json:"id"                        sql:"id"`
 	Type       int        `json:"type"                      sql:"type"`
 	Name       string     `json:"name"                      sql:"name"`
@@ -19,6 +19,10 @@ type BasicModel struct {
 	UpdatedOn  *time.Time `json:"updated_on,omitempty"      sql:"updated_on"`
 }
 
-func (this *BasicModel) IsLeafNode() bool {
+func (this *BaseModel) IsLeafNode() bool {
 	return this.LeftValue+1 == this.RightValue
+}
+
+func (this *BaseModel) IsValid() bool {
+	return this.Status == K_STATUS_ENABLE
 }

@@ -4,7 +4,34 @@ import (
 	"github.com/smartwalle/dbs"
 )
 
-func (this *Manager) GetCategory(id int64, result interface{}) (err error) {
+func (this *Manager) _getCategoryWithId(tx *dbs.Tx, id int64) (result *BaseModel, err error) {
+	var sb = dbs.NewSelectBuilder()
+	sb.Selects("c.id", "c.type", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
+	sb.From(this.Table, "AS c")
+	sb.Where("c.id = ?", id)
+	sb.Limit(1)
+	if err = tx.ExecSelectBuilder(sb, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (this *Manager) _getCategoryWithMaxRightValue(tx *dbs.Tx, cType int) (result *BaseModel, err error) {
+	var sb = dbs.NewSelectBuilder()
+	sb.Selects("c.id", "c.type", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
+	sb.From(this.Table, "AS c")
+	if cType > 0 {
+		sb.Where("c.type = ?", cType)
+	}
+	sb.OrderBy("c.right_value DESC")
+	sb.Limit(1)
+	if err = tx.ExecSelectBuilder(sb, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (this *Manager) getCategory(id int64, result interface{}) (err error) {
 	var tx = dbs.MustTx(this.DB)
 
 	if err = this.getCategoryWithId(tx, id, result); err != nil {
@@ -29,7 +56,7 @@ func (this *Manager) getCategoryWithId(tx *dbs.Tx, id int64, result interface{})
 	return nil
 }
 
-func (this *Manager) GetCategoryWithName(cType int, name string, result interface{}) (err error) {
+func (this *Manager) getCategoryWithName(cType int, name string, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
 	sb.From(this.Table, "AS c")
@@ -41,34 +68,7 @@ func (this *Manager) GetCategoryWithName(cType int, name string, result interfac
 	return nil
 }
 
-func (this *Manager) _getCategoryWithId(tx *dbs.Tx, id int64) (result *BasicModel, err error) {
-	var sb = dbs.NewSelectBuilder()
-	sb.Selects("c.id", "c.type", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
-	sb.From(this.Table, "AS c")
-	sb.Where("c.id = ?", id)
-	sb.Limit(1)
-	if err = tx.ExecSelectBuilder(sb, &result); err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
-func (this *Manager) _getCategoryWithMaxRightValue(tx *dbs.Tx, cType int) (result *BasicModel, err error) {
-	var sb = dbs.NewSelectBuilder()
-	sb.Selects("c.id", "c.type", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
-	sb.From(this.Table, "AS c")
-	if cType > 0 {
-		sb.Where("c.type = ?", cType)
-	}
-	sb.OrderBy("c.right_value DESC")
-	sb.Limit(1)
-	if err = tx.ExecSelectBuilder(sb, &result); err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
-func (this *Manager) GetCategoryList(parentId int64, cType, status, depth int, name string, limit uint64, includeParent bool, result interface{}) (err error) {
+func (this *Manager) getCategoryList(parentId int64, cType, status, depth int, name string, limit uint64, includeParent bool, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
 	sb.From(this.Table, "AS c")
@@ -109,7 +109,7 @@ func (this *Manager) GetCategoryList(parentId int64, cType, status, depth int, n
 	return nil
 }
 
-func (this *Manager) GetIdList(parentId int64, status, depth int, includeParent bool) (result []int64, err error) {
+func (this *Manager) getIdList(parentId int64, status, depth int, includeParent bool) (result []int64, err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id")
 	sb.From(this.Table, "AS c")
@@ -133,7 +133,7 @@ func (this *Manager) GetIdList(parentId int64, status, depth int, includeParent 
 	}
 	sb.OrderBy("c.type", "c.left_value")
 
-	var categoryList []*BasicModel
+	var categoryList []*BaseModel
 	if err = sb.Scan(this.DB, &categoryList); err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (this *Manager) GetIdList(parentId int64, status, depth int, includeParent 
 	return result, nil
 }
 
-func (this *Manager) GetPathList(id int64, status int, includeLastNode bool, result interface{}) (err error) {
+func (this *Manager) getPathList(id int64, status int, includeLastNode bool, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
 	sb.From(this.Table, "AS sc")

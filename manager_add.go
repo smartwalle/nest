@@ -3,7 +3,6 @@ package nest
 import (
 	"github.com/smartwalle/dbs"
 	"time"
-	"fmt"
 )
 
 const (
@@ -14,7 +13,7 @@ const (
 	K_ADD_POSITION_RIGHT = 4 // 右边 (兄弟分类)
 )
 
-// AddCategory 添加分类
+// addCategory 添加分类
 // cType: 分类类型（分类组）
 // position:
 // 		1、将新的分类添加到参照分类的子分类列表头部；
@@ -25,7 +24,7 @@ const (
 // name: 分类名
 // status: 分类状态 1000、有效；2000、无效
 // ext: 其它数据
-func (this *Manager) AddCategory(cId int64, cType, position int, referTo int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
+func (this *Manager) addCategory(cId int64, cType, position int, referTo int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
 	var sess = this.DB
 
 	// 锁表
@@ -43,7 +42,7 @@ func (this *Manager) AddCategory(cId int64, cType, position int, referTo int64, 
 	var tx = dbs.MustTx(sess)
 
 	// 查询出参照分类的信息
-	var referCategory *BasicModel
+	var referCategory *BaseModel
 
 	if position == K_ADD_POSITION_ROOT {
 		// 如果是添加顶级分类，那么参照分类为 right value 最大的
@@ -53,7 +52,7 @@ func (this *Manager) AddCategory(cId int64, cType, position int, referTo int64, 
 
 		// 如果参照分类为 nil，则创建一个虚拟的
 		if referCategory == nil {
-			referCategory = &BasicModel{}
+			referCategory = &BaseModel{}
 			referCategory.Id = -1
 			referCategory.Type = cType
 			referCategory.LeftValue = 0
@@ -85,7 +84,7 @@ func (this *Manager) AddCategory(cId int64, cType, position int, referTo int64, 
 	return result, nil
 }
 
-func (this *Manager) addCategoryWithPosition(tx *dbs.Tx, refer *BasicModel, cId int64, position int, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) addCategoryWithPosition(tx *dbs.Tx, refer *BaseModel, cId int64, position int, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	switch position {
 	case K_ADD_POSITION_ROOT:
 		return this.insertCategoryToRoot(tx, refer, cId, name, status, ext)
@@ -102,7 +101,7 @@ func (this *Manager) addCategoryWithPosition(tx *dbs.Tx, refer *BasicModel, cId 
 	return 0, ErrUnknownPosition
 }
 
-func (this *Manager) insertCategoryToRoot(tx *dbs.Tx, refer *BasicModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertCategoryToRoot(tx *dbs.Tx, refer *BaseModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	var cType = refer.Type
 	var leftValue = refer.RightValue + 1
 	var rightValue = refer.RightValue + 2
@@ -113,7 +112,7 @@ func (this *Manager) insertCategoryToRoot(tx *dbs.Tx, refer *BasicModel, cId int
 	return id, nil
 }
 
-func (this *Manager) insertCategoryToFirst(tx *dbs.Tx, refer *BasicModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertCategoryToFirst(tx *dbs.Tx, refer *BaseModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
@@ -138,7 +137,7 @@ func (this *Manager) insertCategoryToFirst(tx *dbs.Tx, refer *BasicModel, cId in
 	return id, nil
 }
 
-func (this *Manager) insertCategoryToLast(tx *dbs.Tx, refer *BasicModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertCategoryToLast(tx *dbs.Tx, refer *BaseModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
@@ -164,7 +163,7 @@ func (this *Manager) insertCategoryToLast(tx *dbs.Tx, refer *BasicModel, cId int
 	return id, nil
 }
 
-func (this *Manager) insertCategoryToLeft(tx *dbs.Tx, refer *BasicModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertCategoryToLeft(tx *dbs.Tx, refer *BaseModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
@@ -189,7 +188,7 @@ func (this *Manager) insertCategoryToLeft(tx *dbs.Tx, refer *BasicModel, cId int
 	return id, nil
 }
 
-func (this *Manager) insertCategoryToRight(tx *dbs.Tx, refer *BasicModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertCategoryToRight(tx *dbs.Tx, refer *BaseModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
@@ -236,8 +235,6 @@ func (this *Manager) insertCategory(tx *dbs.Tx, cId int64, cType int, name strin
 	for key, value := range ext {
 		ib.SET(key, value)
 	}
-
-	fmt.Println(ib.ToSQL())
 
 	if result, err := tx.ExecInsertBuilder(ib); err != nil {
 		return 0, err
