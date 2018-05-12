@@ -6,11 +6,11 @@ import (
 )
 
 const (
-	k_MOVE_POSITION_ROOT  = 0 // 顶级分类
-	k_MOVE_POSITION_FIRST = 1 // 列表头部 (子分类)
-	k_MOVE_POSITION_LAST  = 2 // 列表尾部 (子分类)
-	k_MOVE_POSITION_LEFT  = 3 // 左边 (兄弟分类)
-	k_MOVE_POSITION_RIGHT = 4 // 右边 (兄弟分类)
+	K_MOVE_POSITION_ROOT  = 0 // 顶级分类
+	K_MOVE_POSITION_FIRST = 1 // 列表头部 (子分类)
+	K_MOVE_POSITION_LAST  = 2 // 列表尾部 (子分类)
+	K_MOVE_POSITION_LEFT  = 3 // 左边 (兄弟分类)
+	K_MOVE_POSITION_RIGHT = 4 // 右边 (兄弟分类)
 )
 
 func (this *Manager) UpdateCategory(id int64, updateInfo map[string]interface{}) (err error) {
@@ -165,7 +165,7 @@ func (this *Manager) MoveCategory(position int, id, rid int64) (err error) {
 
 	// 判断参照分类是否存在
 	var refer *BasicModel
-	if position == k_MOVE_POSITION_ROOT {
+	if position == K_MOVE_POSITION_ROOT {
 		// 如果是添加顶级分类，那么参照分类为 right value 最大的
 		if err = this.getCategoryWithMaxRightValue(tx, category.Type, &refer); err != nil {
 			return err
@@ -256,15 +256,15 @@ func (this *Manager) moveCategoryWithPosition(tx *dbs.Tx, position int, category
 	}
 
 	switch position {
-	case k_MOVE_POSITION_ROOT:
+	case K_MOVE_POSITION_ROOT:
 		return this.moveToRight(tx, category, refer, updateIdList, nodeLen)
-	case k_MOVE_POSITION_FIRST:
+	case K_MOVE_POSITION_FIRST:
 		return this.moveToFirst(tx, category, refer, updateIdList, nodeLen)
-	case k_MOVE_POSITION_LAST:
+	case K_MOVE_POSITION_LAST:
 		return this.moveToLast(tx, category, refer, updateIdList, nodeLen)
-	case k_MOVE_POSITION_LEFT:
+	case K_MOVE_POSITION_LEFT:
 		return this.moveToLeft(tx, category, refer, updateIdList, nodeLen)
-	case k_MOVE_POSITION_RIGHT:
+	case K_MOVE_POSITION_RIGHT:
 		return this.moveToRight(tx, category, refer, updateIdList, nodeLen)
 	}
 	tx.Rollback()

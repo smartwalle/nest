@@ -3,14 +3,15 @@ package nest
 import (
 	"github.com/smartwalle/dbs"
 	"time"
+	"fmt"
 )
 
 const (
-	k_ADD_POSITION_ROOT  = 0 // 顶级分类
-	k_ADD_POSITION_FIRST = 1 // 列表头部 (子分类)
-	k_ADD_POSITION_LAST  = 2 // 列表尾部 (子分类)
-	k_ADD_POSITION_LEFT  = 3 // 左边 (兄弟分类)
-	k_ADD_POSITION_RIGHT = 4 // 右边 (兄弟分类)
+	K_ADD_POSITION_ROOT  = 0 // 顶级分类
+	K_ADD_POSITION_FIRST = 1 // 列表头部 (子分类)
+	K_ADD_POSITION_LAST  = 2 // 列表尾部 (子分类)
+	K_ADD_POSITION_LEFT  = 3 // 左边 (兄弟分类)
+	K_ADD_POSITION_RIGHT = 4 // 右边 (兄弟分类)
 )
 
 // AddCategory 添加分类
@@ -44,7 +45,7 @@ func (this *Manager) AddCategory(cId int64, cType, position int, referTo int64, 
 	// 查询出参照分类的信息
 	var referCategory *BasicModel
 
-	if position == k_ADD_POSITION_ROOT {
+	if position == K_ADD_POSITION_ROOT {
 		// 如果是添加顶级分类，那么参照分类为 right value 最大的
 		if err = this.getCategoryWithMaxRightValue(tx, cType, &referCategory); err != nil {
 			return 0, err
@@ -86,15 +87,15 @@ func (this *Manager) AddCategory(cId int64, cType, position int, referTo int64, 
 
 func (this *Manager) addCategoryWithPosition(tx *dbs.Tx, refer *BasicModel, cId int64, position int, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	switch position {
-	case k_ADD_POSITION_ROOT:
+	case K_ADD_POSITION_ROOT:
 		return this.insertCategoryToRoot(tx, refer, cId, name, status, ext)
-	case k_ADD_POSITION_FIRST:
+	case K_ADD_POSITION_FIRST:
 		return this.insertCategoryToFirst(tx, refer, cId, name, status, ext)
-	case k_ADD_POSITION_LAST:
+	case K_ADD_POSITION_LAST:
 		return this.insertCategoryToLast(tx, refer, cId, name, status, ext)
-	case k_ADD_POSITION_LEFT:
+	case K_ADD_POSITION_LEFT:
 		return this.insertCategoryToLeft(tx, refer, cId, name, status, ext)
-	case k_ADD_POSITION_RIGHT:
+	case K_ADD_POSITION_RIGHT:
 		return this.insertCategoryToRight(tx, refer, cId, name, status, ext)
 	}
 	tx.Rollback()
@@ -235,6 +236,8 @@ func (this *Manager) insertCategory(tx *dbs.Tx, cId int64, cType int, name strin
 	for key, value := range ext {
 		ib.SET(key, value)
 	}
+
+	fmt.Println(ib.ToSQL())
 
 	if result, err := tx.ExecInsertBuilder(ib); err != nil {
 		return 0, err

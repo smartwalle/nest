@@ -43,7 +43,7 @@ func (this *Manager) GetCategoryWithName(cType int, name string, result interfac
 
 func (this *Manager) getCategoryWithMaxRightValue(tx *dbs.Tx, cType int, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
-	sb.Selects(this.SelectFields...)
+	sb.Selects("c.id", "c.type", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
 	sb.From(this.Table, "AS c")
 	if cType > 0 {
 		sb.Where("c.type = ?", cType)
