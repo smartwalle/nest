@@ -1,4 +1,4 @@
-package category
+package nest
 
 import (
 	"github.com/smartwalle/dbs"
@@ -6,20 +6,32 @@ import (
 )
 
 const (
-	k_MOVE_CATEGORY_POSITION_ROOT  = 0 // 顶级分类
-	k_MOVE_CATEGORY_POSITION_FIRST = 1 // 列表头部 (子分类)
-	k_MOVE_CATEGORY_POSITION_LAST  = 2 // 列表尾部 (子分类)
-	k_MOVE_CATEGORY_POSITION_LEFT  = 3 // 左边 (兄弟分类)
-	k_MOVE_CATEGORY_POSITION_RIGHT = 4 // 右边 (兄弟分类)
+	k_MOVE_POSITION_ROOT  = 0 // 顶级分类
+	k_MOVE_POSITION_FIRST = 1 // 列表头部 (子分类)
+	k_MOVE_POSITION_LAST  = 2 // 列表尾部 (子分类)
+	k_MOVE_POSITION_LEFT  = 3 // 左边 (兄弟分类)
+	k_MOVE_POSITION_RIGHT = 4 // 右边 (兄弟分类)
 )
 
-func (this *manager) updateCategory(id int64, name, description, ext1, ext2 string) (err error) {
+func (this *Manager) UpdateCategory(id int64, updateInfo map[string]interface{}) (err error) {
+	if updateInfo == nil || len(updateInfo) == 0 {
+		return nil
+	}
+
 	var ub = dbs.NewUpdateBuilder()
 	ub.Table(this.table)
-	ub.SET("name", name)
-	ub.SET("description", description)
-	ub.SET("ext1", ext1)
-	ub.SET("ext2", ext2)
+
+	delete(updateInfo, "id")
+	delete(updateInfo, "type")
+	delete(updateInfo, "left_value")
+	delete(updateInfo, "right_value")
+	delete(updateInfo, "depth")
+	delete(updateInfo, "status")
+	delete(updateInfo, "created_on")
+
+	updateInfo["updated_on"] = time.Now()
+	ub.SetMap(updateInfo)
+
 	ub.Where("id = ?", id)
 	ub.Limit(1)
 	if _, err = ub.Exec(this.db); err != nil {
@@ -28,14 +40,14 @@ func (this *manager) updateCategory(id int64, name, description, ext1, ext2 stri
 	return nil
 }
 
-// updateCategoryStatus 更新分类状态
+// UpdateCategoryStatus 更新分类状态
 // id: 被更新分类的 id
 // status: 新的状态
 // updateType:
 // 		0、只更新当前分类的状态，子分类的状态不会受到影响，并且不会改变父子关系；
 // 		1、子分类的状态会一起更新，不会改变父子关系；
 // 		2、子分类的状态不会受到影响，并且所有子分类会向上移动一级（只针对把状态设置为 无效 的时候）；
-func (this *manager) updateCategoryStatus(id int64, status, updateType int) (err error) {
+func (this *Manager) UpdateCategoryStatus(id int64, status, updateType int) (err error) {
 	var sess = this.db
 
 	// 锁表
@@ -51,9 +63,8 @@ func (this *manager) updateCategoryStatus(id int64, status, updateType int) (err
 	}()
 
 	var tx = dbs.MustTx(sess)
-
-	category, err := this.getCategoryWithId(tx, id)
-	if err != nil {
+	var category *BasicModel
+	if err = this.getCategoryWithId(tx, id, &category); err != nil {
 		return err
 	}
 
@@ -71,7 +82,7 @@ func (this *manager) updateCategoryStatus(id int64, status, updateType int) (err
 
 	switch updateType {
 	case 2:
-		if status == K_CATEGORY_STATUS_DISABLE {
+		if status == K_STATUS_DISABLE {
 			var ub = dbs.NewUpdateBuilder()
 			ub.Table(this.table)
 			ub.SET("status", status)
@@ -121,7 +132,7 @@ func (this *manager) updateCategoryStatus(id int64, status, updateType int) (err
 	return nil
 }
 
-func (this *manager) moveCategory(position int, id, rid int64) (err error) {
+func (this *Manager) MoveCategory(position int, id, rid int64) (err error) {
 	if id == rid {
 		return ErrParentNotAllowed
 	}
@@ -143,8 +154,8 @@ func (this *manager) moveCategory(position int, id, rid int64) (err error) {
 	var tx = dbs.MustTx(sess)
 
 	// 判断被移动的分类是否存在
-	category, err := this.getCategoryWithId(tx, id)
-	if err != nil {
+	var category *BasicModel
+	if err = this.getCategoryWithId(tx, id, &category); err != nil {
 		return err
 	}
 	if category == nil {
@@ -153,10 +164,10 @@ func (this *manager) moveCategory(position int, id, rid int64) (err error) {
 	}
 
 	// 判断参照分类是否存在
-	var refer *Category
-	if position == k_MOVE_CATEGORY_POSITION_ROOT {
+	var refer *BasicModel
+	if position == k_MOVE_POSITION_ROOT {
 		// 如果是添加顶级分类，那么参照分类为 right value 最大的
-		if refer, err = this.getCategoryWithMaxRightValue(tx, category.Type); err != nil {
+		if err = this.getCategoryWithMaxRightValue(tx, category.Type, &refer); err != nil {
 			return err
 		}
 		if refer != nil && refer.Id == category.Id {
@@ -164,7 +175,7 @@ func (this *manager) moveCategory(position int, id, rid int64) (err error) {
 			return nil
 		}
 	} else {
-		if refer, err = this.getCategoryWithId(tx, rid); err != nil {
+		if err = this.getCategoryWithId(tx, rid, &refer); err != nil {
 			return err
 		}
 	}
@@ -193,9 +204,8 @@ func (this *manager) moveCategory(position int, id, rid int64) (err error) {
 
 	// 查询出被移动分类的所有子分类
 	//children, err := this.GetCategoryList(category.Id, 0, 0)
-	children, err := this.getCategoryList(category.Id, 0, 0, 0, "", 0, true)
-
-	if err != nil {
+	var children []*BasicModel
+	if err = this.GetCategoryList(category.Id, 0, 0, 0, "", 0, true, &children); err != nil {
 		return err
 	}
 
@@ -216,7 +226,7 @@ func (this *manager) moveCategory(position int, id, rid int64) (err error) {
 	return nil
 }
 
-func (this *manager) moveCategoryWithPosition(tx *dbs.Tx, position int, category, refer *Category, updateIdList []int64) (err error) {
+func (this *Manager) moveCategoryWithPosition(tx *dbs.Tx, position int, category, refer *BasicModel, updateIdList []int64) (err error) {
 	var nodeLen = category.RightValue - category.LeftValue + 1
 	var now = time.Now()
 
@@ -246,22 +256,22 @@ func (this *manager) moveCategoryWithPosition(tx *dbs.Tx, position int, category
 	}
 
 	switch position {
-	case k_MOVE_CATEGORY_POSITION_ROOT:
+	case k_MOVE_POSITION_ROOT:
 		return this.moveToRight(tx, category, refer, updateIdList, nodeLen)
-	case k_MOVE_CATEGORY_POSITION_FIRST:
+	case k_MOVE_POSITION_FIRST:
 		return this.moveToFirst(tx, category, refer, updateIdList, nodeLen)
-	case k_MOVE_CATEGORY_POSITION_LAST:
+	case k_MOVE_POSITION_LAST:
 		return this.moveToLast(tx, category, refer, updateIdList, nodeLen)
-	case k_MOVE_CATEGORY_POSITION_LEFT:
+	case k_MOVE_POSITION_LEFT:
 		return this.moveToLeft(tx, category, refer, updateIdList, nodeLen)
-	case k_MOVE_CATEGORY_POSITION_RIGHT:
+	case k_MOVE_POSITION_RIGHT:
 		return this.moveToRight(tx, category, refer, updateIdList, nodeLen)
 	}
 	tx.Rollback()
 	return ErrUnknownPosition
 }
 
-func (this *manager) moveToFirst(tx *dbs.Tx, category, parent *Category, updateIdList []int64, nodeLen int) (err error) {
+func (this *Manager) moveToFirst(tx *dbs.Tx, category, parent *BasicModel, updateIdList []int64, nodeLen int) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
@@ -304,7 +314,7 @@ func (this *manager) moveToFirst(tx *dbs.Tx, category, parent *Category, updateI
 	return nil
 }
 
-func (this *manager) moveToLast(tx *dbs.Tx, category, parent *Category, updateIdList []int64, nodeLen int) (err error) {
+func (this *Manager) moveToLast(tx *dbs.Tx, category, parent *BasicModel, updateIdList []int64, nodeLen int) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
@@ -347,7 +357,7 @@ func (this *manager) moveToLast(tx *dbs.Tx, category, parent *Category, updateId
 	return nil
 }
 
-func (this *manager) moveToLeft(tx *dbs.Tx, category, refer *Category, updateIdList []int64, nodeLen int) (err error) {
+func (this *Manager) moveToLeft(tx *dbs.Tx, category, refer *BasicModel, updateIdList []int64, nodeLen int) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
@@ -390,7 +400,7 @@ func (this *manager) moveToLeft(tx *dbs.Tx, category, refer *Category, updateIdL
 	return nil
 }
 
-func (this *manager) moveToRight(tx *dbs.Tx, category, refer *Category, updateIdList []int64, nodeLen int) (err error) {
+func (this *Manager) moveToRight(tx *dbs.Tx, category, refer *BasicModel, updateIdList []int64, nodeLen int) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
