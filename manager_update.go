@@ -64,7 +64,7 @@ func (this *Manager) UpdateCategoryStatus(id int64, status, updateType int) (err
 
 	var tx = dbs.MustTx(sess)
 	var category *BasicModel
-	if err = this._getCategoryWithId(tx, id, &category); err != nil {
+	if category, err = this._getCategoryWithId(tx, id); err != nil {
 		return err
 	}
 
@@ -155,7 +155,7 @@ func (this *Manager) MoveCategory(position int, id, rid int64) (err error) {
 
 	// 判断被移动的分类是否存在
 	var category *BasicModel
-	if err = this._getCategoryWithId(tx, id, &category); err != nil {
+	if category, err = this._getCategoryWithId(tx, id); err != nil {
 		return err
 	}
 	if category == nil {
@@ -167,7 +167,7 @@ func (this *Manager) MoveCategory(position int, id, rid int64) (err error) {
 	var refer *BasicModel
 	if position == K_MOVE_POSITION_ROOT {
 		// 如果是添加顶级分类，那么参照分类为 right value 最大的
-		if err = this._getCategoryWithMaxRightValue(tx, category.Type, &refer); err != nil {
+		if refer, err = this._getCategoryWithMaxRightValue(tx, category.Type); err != nil {
 			return err
 		}
 		if refer != nil && refer.Id == category.Id {
@@ -175,7 +175,7 @@ func (this *Manager) MoveCategory(position int, id, rid int64) (err error) {
 			return nil
 		}
 	} else {
-		if err = this._getCategoryWithId(tx, rid, &refer); err != nil {
+		if refer, err = this._getCategoryWithId(tx, rid); err != nil {
 			return err
 		}
 	}

@@ -41,19 +41,19 @@ func (this *Manager) GetCategoryWithName(cType int, name string, result interfac
 	return nil
 }
 
-func (this *Manager) _getCategoryWithId(tx *dbs.Tx, id int64, result interface{}) (err error) {
+func (this *Manager) _getCategoryWithId(tx *dbs.Tx, id int64) (result *BasicModel, err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id", "c.type", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
 	sb.From(this.Table, "AS c")
 	sb.Where("c.id = ?", id)
 	sb.Limit(1)
-	if err = tx.ExecSelectBuilder(sb, result); err != nil {
-		return err
+	if err = tx.ExecSelectBuilder(sb, &result); err != nil {
+		return nil, err
 	}
-	return nil
+	return result, nil
 }
 
-func (this *Manager) _getCategoryWithMaxRightValue(tx *dbs.Tx, cType int, result interface{}) (err error) {
+func (this *Manager) _getCategoryWithMaxRightValue(tx *dbs.Tx, cType int) (result *BasicModel, err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id", "c.type", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
 	sb.From(this.Table, "AS c")
@@ -62,10 +62,10 @@ func (this *Manager) _getCategoryWithMaxRightValue(tx *dbs.Tx, cType int, result
 	}
 	sb.OrderBy("c.right_value DESC")
 	sb.Limit(1)
-	if err = tx.ExecSelectBuilder(sb, result); err != nil {
-		return err
+	if err = tx.ExecSelectBuilder(sb, &result); err != nil {
+		return nil, err
 	}
-	return nil
+	return result, nil
 }
 
 func (this *Manager) GetCategoryList(parentId int64, cType, status, depth int, name string, limit uint64, includeParent bool, result interface{}) (err error) {
