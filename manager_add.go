@@ -47,7 +47,7 @@ func (this *Manager) AddCategory(cId int64, cType, position int, referTo int64, 
 
 	if position == K_ADD_POSITION_ROOT {
 		// 如果是添加顶级分类，那么参照分类为 right value 最大的
-		if err = this.getCategoryWithMaxRightValue(tx, cType, &referCategory); err != nil {
+		if err = this._getCategoryWithMaxRightValue(tx, cType, &referCategory); err != nil {
 			return 0, err
 		}
 
@@ -61,7 +61,7 @@ func (this *Manager) AddCategory(cId int64, cType, position int, referTo int64, 
 			referCategory.Depth = 1
 		}
 	} else {
-		if err = this.getCategoryWithId(tx, referTo, &referCategory); err != nil {
+		if err = this._getCategoryWithId(tx, referTo, &referCategory); err != nil {
 			return 0, err
 		}
 		if referCategory == nil {
