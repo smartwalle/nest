@@ -25,10 +25,10 @@ const (
 // status: 分类状态 1000、有效；2000、无效
 // ext: 其它数据
 func (this *Manager) AddCategory(cId int64, cType, position int, referTo int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
-	var sess = this.db
+	var sess = this.DB
 
 	// 锁表
-	var lock = dbs.WriteLock(this.table)
+	var lock = dbs.WriteLock(this.Table)
 	if _, err = lock.Exec(sess); err != nil {
 		return 0, err
 	}
@@ -114,7 +114,7 @@ func (this *Manager) insertCategoryToRoot(tx *dbs.Tx, refer *BasicModel, cId int
 
 func (this *Manager) insertCategoryToFirst(tx *dbs.Tx, refer *BasicModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
-	ubLeft.Table(this.table)
+	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("type = ? AND left_value > ?", refer.Type, refer.LeftValue)
@@ -123,7 +123,7 @@ func (this *Manager) insertCategoryToFirst(tx *dbs.Tx, refer *BasicModel, cId in
 	}
 
 	var ubRight = dbs.NewUpdateBuilder()
-	ubRight.Table(this.table)
+	ubRight.Table(this.Table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("type = ? AND right_value > ?", refer.Type, refer.LeftValue)
@@ -139,7 +139,7 @@ func (this *Manager) insertCategoryToFirst(tx *dbs.Tx, refer *BasicModel, cId in
 
 func (this *Manager) insertCategoryToLast(tx *dbs.Tx, refer *BasicModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
-	ubLeft.Table(this.table)
+	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("type = ? AND left_value > ?", refer.Type, refer.RightValue)
@@ -148,7 +148,7 @@ func (this *Manager) insertCategoryToLast(tx *dbs.Tx, refer *BasicModel, cId int
 	}
 
 	var ubRight = dbs.NewUpdateBuilder()
-	ubRight.Table(this.table)
+	ubRight.Table(this.Table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("type = ? AND right_value >= ?", refer.Type, refer.RightValue)
@@ -165,7 +165,7 @@ func (this *Manager) insertCategoryToLast(tx *dbs.Tx, refer *BasicModel, cId int
 
 func (this *Manager) insertCategoryToLeft(tx *dbs.Tx, refer *BasicModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
-	ubLeft.Table(this.table)
+	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("type = ? AND left_value >= ?", refer.Type, refer.LeftValue)
@@ -174,7 +174,7 @@ func (this *Manager) insertCategoryToLeft(tx *dbs.Tx, refer *BasicModel, cId int
 	}
 
 	var ubRight = dbs.NewUpdateBuilder()
-	ubRight.Table(this.table)
+	ubRight.Table(this.Table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("type = ? AND right_value >= ?", refer.Type, refer.LeftValue)
@@ -190,7 +190,7 @@ func (this *Manager) insertCategoryToLeft(tx *dbs.Tx, refer *BasicModel, cId int
 
 func (this *Manager) insertCategoryToRight(tx *dbs.Tx, refer *BasicModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
-	ubLeft.Table(this.table)
+	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("type = ? AND left_value > ?", refer.Type, refer.RightValue)
@@ -199,7 +199,7 @@ func (this *Manager) insertCategoryToRight(tx *dbs.Tx, refer *BasicModel, cId in
 	}
 
 	var ubRight = dbs.NewUpdateBuilder()
-	ubRight.Table(this.table)
+	ubRight.Table(this.Table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("type = ? AND right_value > ?", refer.Type, refer.RightValue)
@@ -216,7 +216,7 @@ func (this *Manager) insertCategoryToRight(tx *dbs.Tx, refer *BasicModel, cId in
 func (this *Manager) insertCategory(tx *dbs.Tx, cId int64, cType int, name string, leftValue, rightValue, depth, status int, ext map[string]interface{}) (id int64, err error) {
 	var now = time.Now()
 	var ib = dbs.NewInsertBuilder()
-	ib.Table(this.table)
+	ib.Table(this.Table)
 
 	if ext == nil {
 		ext = make(map[string]interface{})

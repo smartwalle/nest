@@ -5,7 +5,7 @@ import (
 )
 
 func (this *Manager) GetCategory(id int64, result interface{}) (err error) {
-	var tx = dbs.MustTx(this.db)
+	var tx = dbs.MustTx(this.DB)
 
 	if err = this.getCategoryWithId(tx, id, result); err != nil {
 		return err
@@ -20,7 +20,7 @@ func (this *Manager) GetCategory(id int64, result interface{}) (err error) {
 func (this *Manager) getCategoryWithId(tx *dbs.Tx, id int64, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
-	sb.From(this.table, "AS c")
+	sb.From(this.Table, "AS c")
 	sb.Where("c.id = ?", id)
 	sb.Limit(1)
 	if err = tx.ExecSelectBuilder(sb, result); err != nil {
@@ -32,10 +32,10 @@ func (this *Manager) getCategoryWithId(tx *dbs.Tx, id int64, result interface{})
 func (this *Manager) GetCategoryWithName(cType int, name string, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
-	sb.From(this.table, "AS c")
+	sb.From(this.Table, "AS c")
 	sb.Where("c.type = ? AND c.name = ?", cType, name)
 	sb.Limit(1)
-	if err = sb.Scan(this.db, result); err != nil {
+	if err = sb.Scan(this.DB, result); err != nil {
 		return err
 	}
 	return nil
@@ -44,7 +44,7 @@ func (this *Manager) GetCategoryWithName(cType int, name string, result interfac
 func (this *Manager) getCategoryWithMaxRightValue(tx *dbs.Tx, cType int, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
-	sb.From(this.table, "AS c")
+	sb.From(this.Table, "AS c")
 	if cType > 0 {
 		sb.Where("c.type = ?", cType)
 	}
@@ -59,12 +59,12 @@ func (this *Manager) getCategoryWithMaxRightValue(tx *dbs.Tx, cType int, result 
 func (this *Manager) GetCategoryList(parentId int64, cType, status, depth int, name string, limit uint64, includeParent bool, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
-	sb.From(this.table, "AS c")
+	sb.From(this.Table, "AS c")
 	if parentId > 0 {
 		if includeParent {
-			sb.LeftJoin(this.table, "AS pc ON pc.type = c.type AND pc.left_value <= c.left_value AND pc.right_value >= c.right_value")
+			sb.LeftJoin(this.Table, "AS pc ON pc.type = c.type AND pc.left_value <= c.left_value AND pc.right_value >= c.right_value")
 		} else {
-			sb.LeftJoin(this.table, "AS pc ON pc.type = c.type AND pc.left_value < c.left_value AND pc.right_value > c.right_value")
+			sb.LeftJoin(this.Table, "AS pc ON pc.type = c.type AND pc.left_value < c.left_value AND pc.right_value > c.right_value")
 		}
 		sb.Where("pc.id = ?", parentId)
 	} else {
@@ -91,7 +91,7 @@ func (this *Manager) GetCategoryList(parentId int64, cType, status, depth int, n
 		sb.Limit(limit)
 	}
 
-	if err = sb.Scan(this.db, result); err != nil {
+	if err = sb.Scan(this.DB, result); err != nil {
 		return err
 	}
 	return nil
@@ -100,12 +100,12 @@ func (this *Manager) GetCategoryList(parentId int64, cType, status, depth int, n
 func (this *Manager) GetIdList(parentId int64, status, depth int, includeParent bool) (result []int64, err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id")
-	sb.From(this.table, "AS c")
+	sb.From(this.Table, "AS c")
 	if parentId > 0 {
 		if includeParent {
-			sb.LeftJoin(this.table, "AS pc ON pc.type = c.type AND pc.left_value <= c.left_value AND pc.right_value >= c.right_value")
+			sb.LeftJoin(this.Table, "AS pc ON pc.type = c.type AND pc.left_value <= c.left_value AND pc.right_value >= c.right_value")
 		} else {
-			sb.LeftJoin(this.table, "AS pc ON pc.type = c.type AND pc.left_value < c.left_value AND pc.right_value > c.right_value")
+			sb.LeftJoin(this.Table, "AS pc ON pc.type = c.type AND pc.left_value < c.left_value AND pc.right_value > c.right_value")
 		}
 		sb.Where("pc.id = ?", parentId)
 	}
@@ -122,7 +122,7 @@ func (this *Manager) GetIdList(parentId int64, status, depth int, includeParent 
 	sb.OrderBy("c.type", "c.left_value")
 
 	var categoryList []*BasicModel
-	if err = sb.Scan(this.db, &categoryList); err != nil {
+	if err = sb.Scan(this.DB, &categoryList); err != nil {
 		return nil, err
 	}
 
@@ -135,18 +135,18 @@ func (this *Manager) GetIdList(parentId int64, status, depth int, includeParent 
 func (this *Manager) GetPathList(id int64, status int, includeLastNode bool, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
-	sb.From(this.table, "AS sc")
+	sb.From(this.Table, "AS sc")
 	if includeLastNode {
-		sb.LeftJoin(this.table, "AS c ON c.type = sc.type AND c.left_value <= sc.left_value AND c.right_value >= sc.right_value")
+		sb.LeftJoin(this.Table, "AS c ON c.type = sc.type AND c.left_value <= sc.left_value AND c.right_value >= sc.right_value")
 	} else {
-		sb.LeftJoin(this.table, "AS c ON c.type = sc.type AND c.left_value < sc.left_value AND c.right_value > sc.right_value")
+		sb.LeftJoin(this.Table, "AS c ON c.type = sc.type AND c.left_value < sc.left_value AND c.right_value > sc.right_value")
 	}
 	sb.Where("sc.id = ?", id)
 	if status > 0 {
 		sb.Where("c.status = ?", status)
 	}
 	sb.OrderBy("c.left_value")
-	if err = sb.Scan(this.db, result); err != nil {
+	if err = sb.Scan(this.DB, result); err != nil {
 		return err
 	}
 	return nil

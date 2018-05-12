@@ -19,7 +19,7 @@ func (this *Manager) UpdateCategory(id int64, updateInfo map[string]interface{})
 	}
 
 	var ub = dbs.NewUpdateBuilder()
-	ub.Table(this.table)
+	ub.Table(this.Table)
 
 	delete(updateInfo, "id")
 	delete(updateInfo, "type")
@@ -34,7 +34,7 @@ func (this *Manager) UpdateCategory(id int64, updateInfo map[string]interface{})
 
 	ub.Where("id = ?", id)
 	ub.Limit(1)
-	if _, err = ub.Exec(this.db); err != nil {
+	if _, err = ub.Exec(this.DB); err != nil {
 		return nil
 	}
 	return nil
@@ -48,10 +48,10 @@ func (this *Manager) UpdateCategory(id int64, updateInfo map[string]interface{})
 // 		1、子分类的状态会一起更新，不会改变父子关系；
 // 		2、子分类的状态不会受到影响，并且所有子分类会向上移动一级（只针对把状态设置为 无效 的时候）；
 func (this *Manager) UpdateCategoryStatus(id int64, status, updateType int) (err error) {
-	var sess = this.db
+	var sess = this.DB
 
 	// 锁表
-	var lock = dbs.WriteLock(this.table)
+	var lock = dbs.WriteLock(this.Table)
 	if _, err = lock.Exec(sess); err != nil {
 		return err
 	}
@@ -84,7 +84,7 @@ func (this *Manager) UpdateCategoryStatus(id int64, status, updateType int) (err
 	case 2:
 		if status == K_STATUS_DISABLE {
 			var ub = dbs.NewUpdateBuilder()
-			ub.Table(this.table)
+			ub.Table(this.Table)
 			ub.SET("status", status)
 			ub.SET("right_value", dbs.SQL("left_value + 1"))
 			ub.SET("updated_on", now)
@@ -95,7 +95,7 @@ func (this *Manager) UpdateCategoryStatus(id int64, status, updateType int) (err
 			}
 
 			var ubChild = dbs.NewUpdateBuilder()
-			ubChild.Table(this.table)
+			ubChild.Table(this.Table)
 			ubChild.SET("left_value", dbs.SQL("left_value + 1"))
 			ubChild.SET("right_value", dbs.SQL("right_value + 1"))
 			ubChild.SET("depth", dbs.SQL("depth-1"))
@@ -107,7 +107,7 @@ func (this *Manager) UpdateCategoryStatus(id int64, status, updateType int) (err
 		}
 	case 1:
 		var ub = dbs.NewUpdateBuilder()
-		ub.Table(this.table)
+		ub.Table(this.Table)
 		ub.SET("status", status)
 		ub.SET("updated_on", now)
 		ub.Where("type = ? AND left_value >= ? AND right_value <= ?", category.Type, category.LeftValue, category.RightValue)
@@ -116,7 +116,7 @@ func (this *Manager) UpdateCategoryStatus(id int64, status, updateType int) (err
 		}
 	case 0:
 		var ub = dbs.NewUpdateBuilder()
-		ub.Table(this.table)
+		ub.Table(this.Table)
 		ub.SET("status", status)
 		ub.SET("updated_on", now)
 		ub.Where("id = ?", id)
@@ -137,10 +137,10 @@ func (this *Manager) MoveCategory(position int, id, rid int64) (err error) {
 		return ErrParentNotAllowed
 	}
 
-	var sess = this.db
+	var sess = this.DB
 
 	// 锁表
-	var lock = dbs.WriteLock(this.table)
+	var lock = dbs.WriteLock(this.Table)
 	if _, err = lock.Exec(sess); err != nil {
 		return err
 	}
@@ -232,7 +232,7 @@ func (this *Manager) moveCategoryWithPosition(tx *dbs.Tx, position int, category
 
 	// 把要移动的节点及其子节点从原树中删除掉
 	var ubTreeLeft = dbs.NewUpdateBuilder()
-	ubTreeLeft.Table(this.table)
+	ubTreeLeft.Table(this.Table)
 	ubTreeLeft.SET("left_value", dbs.SQL("left_value - ?", nodeLen))
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("type = ? AND left_value > ?", category.Type, category.RightValue)
@@ -240,7 +240,7 @@ func (this *Manager) moveCategoryWithPosition(tx *dbs.Tx, position int, category
 		return err
 	}
 	var ubTreeRight = dbs.NewUpdateBuilder()
-	ubTreeRight.Table(this.table)
+	ubTreeRight.Table(this.Table)
 	ubTreeRight.SET("right_value", dbs.SQL("right_value - ?", nodeLen))
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("type = ? AND right_value > ?", category.Type, category.RightValue)
@@ -276,7 +276,7 @@ func (this *Manager) moveToFirst(tx *dbs.Tx, category, parent *BasicModel, updat
 
 	// 移出空间用于存放被移动的节点及其子节点
 	var ubTreeLeft = dbs.NewUpdateBuilder()
-	ubTreeLeft.Table(this.table)
+	ubTreeLeft.Table(this.Table)
 	ubTreeLeft.SET("left_value", dbs.SQL("left_value + ?", nodeLen))
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("type = ? AND left_value > ?", parent.Type, parent.LeftValue)
@@ -286,7 +286,7 @@ func (this *Manager) moveToFirst(tx *dbs.Tx, category, parent *BasicModel, updat
 	}
 
 	var ubTreeRight = dbs.NewUpdateBuilder()
-	ubTreeRight.Table(this.table)
+	ubTreeRight.Table(this.Table)
 	ubTreeRight.SET("right_value", dbs.SQL("right_value + ?", nodeLen))
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("type = ? AND right_value > ?", parent.Type, parent.LeftValue)
@@ -301,7 +301,7 @@ func (this *Manager) moveToFirst(tx *dbs.Tx, category, parent *BasicModel, updat
 	var diff = category.LeftValue - parent.LeftValue - 1
 	var diffDepth = parent.Depth - category.Depth + 1
 	var ubTree = dbs.NewUpdateBuilder()
-	ubTree.Table(this.table)
+	ubTree.Table(this.Table)
 	ubTree.SET("left_value", dbs.SQL("left_value - ?", diff))
 	ubTree.SET("right_value", dbs.SQL("right_value - ?", diff))
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
@@ -319,7 +319,7 @@ func (this *Manager) moveToLast(tx *dbs.Tx, category, parent *BasicModel, update
 
 	// 移出空间用于存放被移动的节点及其子节点
 	var ubTreeLeft = dbs.NewUpdateBuilder()
-	ubTreeLeft.Table(this.table)
+	ubTreeLeft.Table(this.Table)
 	ubTreeLeft.SET("left_value", dbs.SQL("left_value + ?", nodeLen))
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("type = ? AND left_value > ?", parent.Type, parent.RightValue)
@@ -329,7 +329,7 @@ func (this *Manager) moveToLast(tx *dbs.Tx, category, parent *BasicModel, update
 	}
 
 	var ubTreeRight = dbs.NewUpdateBuilder()
-	ubTreeRight.Table(this.table)
+	ubTreeRight.Table(this.Table)
 	ubTreeRight.SET("right_value", dbs.SQL("right_value + ?", nodeLen))
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("type = ? AND right_value >= ?", parent.Type, parent.RightValue)
@@ -344,7 +344,7 @@ func (this *Manager) moveToLast(tx *dbs.Tx, category, parent *BasicModel, update
 	var diff = category.RightValue - parent.RightValue + 1
 	var diffDepth = parent.Depth - category.Depth + 1
 	var ubTree = dbs.NewUpdateBuilder()
-	ubTree.Table(this.table)
+	ubTree.Table(this.Table)
 	ubTree.SET("left_value", dbs.SQL("left_value - ?", diff))
 	ubTree.SET("right_value", dbs.SQL("right_value - ?", diff))
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
@@ -362,7 +362,7 @@ func (this *Manager) moveToLeft(tx *dbs.Tx, category, refer *BasicModel, updateI
 
 	// 移出空间用于存放被移动的节点及其子节点
 	var ubTreeLeft = dbs.NewUpdateBuilder()
-	ubTreeLeft.Table(this.table)
+	ubTreeLeft.Table(this.Table)
 	ubTreeLeft.SET("left_value", dbs.SQL("left_value + ?", nodeLen))
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("type = ? AND left_value >= ?", refer.Type, refer.LeftValue)
@@ -372,7 +372,7 @@ func (this *Manager) moveToLeft(tx *dbs.Tx, category, refer *BasicModel, updateI
 	}
 
 	var ubTreeRight = dbs.NewUpdateBuilder()
-	ubTreeRight.Table(this.table)
+	ubTreeRight.Table(this.Table)
 	ubTreeRight.SET("right_value", dbs.SQL("right_value + ?", nodeLen))
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("type = ? AND right_value >= ?", refer.Type, refer.LeftValue)
@@ -387,7 +387,7 @@ func (this *Manager) moveToLeft(tx *dbs.Tx, category, refer *BasicModel, updateI
 	var diff = category.LeftValue - refer.LeftValue
 	var diffDepth = refer.Depth - category.Depth
 	var ubTree = dbs.NewUpdateBuilder()
-	ubTree.Table(this.table)
+	ubTree.Table(this.Table)
 	ubTree.SET("left_value", dbs.SQL("left_value - ?", diff))
 	ubTree.SET("right_value", dbs.SQL("right_value - ?", diff))
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
@@ -405,7 +405,7 @@ func (this *Manager) moveToRight(tx *dbs.Tx, category, refer *BasicModel, update
 
 	// 移出空间用于存放被移动的节点及其子节点
 	var ubTreeLeft = dbs.NewUpdateBuilder()
-	ubTreeLeft.Table(this.table)
+	ubTreeLeft.Table(this.Table)
 	ubTreeLeft.SET("left_value", dbs.SQL("left_value + ?", nodeLen))
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("type = ? AND left_value > ?", refer.Type, refer.RightValue)
@@ -415,7 +415,7 @@ func (this *Manager) moveToRight(tx *dbs.Tx, category, refer *BasicModel, update
 	}
 
 	var ubTreeRight = dbs.NewUpdateBuilder()
-	ubTreeRight.Table(this.table)
+	ubTreeRight.Table(this.Table)
 	ubTreeRight.SET("right_value", dbs.SQL("right_value + ?", nodeLen))
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("type = ? AND right_value > ?", refer.Type, refer.RightValue)
@@ -428,7 +428,7 @@ func (this *Manager) moveToRight(tx *dbs.Tx, category, refer *BasicModel, update
 	var diff = category.LeftValue - refer.RightValue - 1
 	var diffDepth = refer.Depth - category.Depth
 	var ubTree = dbs.NewUpdateBuilder()
-	ubTree.Table(this.table)
+	ubTree.Table(this.Table)
 	ubTree.SET("left_value", dbs.SQL("left_value - ?", diff))
 	ubTree.SET("right_value", dbs.SQL("right_value - ?", diff))
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))

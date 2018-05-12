@@ -5,15 +5,15 @@ import (
 )
 
 type Manager struct {
-	db           dbs.DB
-	table        string
+	DB           dbs.DB
+	Table        string
 	SelectFields []string
 }
 
 func NewManager(db dbs.DB, table string) *Manager {
 	var m = &Manager{}
-	m.db = db
-	m.table = table
+	m.DB = db
+	m.Table = table
 	m.SelectFields = []string{"c.id", "c.type", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on"}
 	return m
 }
