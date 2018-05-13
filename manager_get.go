@@ -163,3 +163,20 @@ func (this *Manager) getPathList(id int64, status int, includeLastNode bool, res
 	}
 	return nil
 }
+
+func (this *Manager) getParent(id int64, status int, result interface{}) (err error) {
+	var sb = dbs.NewSelectBuilder()
+	sb.Selects(this.SelectFields...)
+	sb.From(this.Table, "AS sc")
+	sb.LeftJoin(this.Table, "AS c ON c.type = sc.type AND c.left_value < sc.left_value AND c.right_value > sc.right_value")
+	sb.Where("sc.id = ?", id)
+	if status > 0 {
+		sb.Where("c.status = ?", status)
+	}
+	sb.Limit(1)
+	sb.OrderBy("c.left_value DESC")
+	if err = sb.Scan(this.DB, result); err != nil {
+		return err
+	}
+	return nil
+}

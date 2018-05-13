@@ -8,11 +8,11 @@ import (
 )
 
 func main() {
-	var db, _ = sql.Open("mysql", "root:smok2015@tcp(192.168.192.250:3306)/v3?parseTime=true")
-	var m = nest.NewManager(db, "org_department")
+	var db, _ = sql.Open("mysql", "root:yangfeng09@tcp(tw.smartwalle.tk:3306)/test?parseTime=true")
+	var m = nest.NewManager(db, "category")
 
 	var categoryList []*nest.BaseModel
-	err := m.GetNodeList(1, 0, 0, &categoryList)
+	err := m.GetNodePathList(1, 0, 1, &categoryList)
 	if err != nil {
 		fmt.Println("err", err)
 		return

@@ -58,6 +58,11 @@ func (this *Manager) GetCategoryWithName(cType int, name string, result interfac
 	return this.getCategoryWithName(cType, name, result)
 }
 
+// GetParent 获取指定分类的父分类
+func (this *Manager) GetParent(id int64, result interface{}) (err error) {
+	return this.getParent(id, 0, result)
+}
+
 // GetNodeList 获取指定分类的子分类
 func (this *Manager) GetNodeList(parentId int64, status, depth int, result interface{}) (err error) {
 	return this.getCategoryList(parentId, 0, status, depth, "", 0, false, result)
@@ -66,6 +71,16 @@ func (this *Manager) GetNodeList(parentId int64, status, depth int, result inter
 // GetNodeIdList 获取指定分类的子分类 id 列表
 func (this *Manager) GetNodeIdList(parentId int64, status, depth int) (result []int64, err error) {
 	return this.getIdList(parentId, status, depth, false)
+}
+
+// GetNodePathList 获取指定分类的子分类，返回的分类列表包括 parentId 对应的分类
+func (this *Manager) GetNodePathList(parentId int64, status, depth int, result interface{}) (err error) {
+	return this.getCategoryList(parentId, 0, status, depth, "", 0, true, result)
+}
+
+// GetNodePathIdList 获取指定分类的子分类 id 列表，返回的 id 列表包含 parentId
+func (this *Manager) GetNodePathIdList(parentId int64, status, depth int) (result []int64, err error) {
+	return this.getIdList(parentId, status, depth, true)
 }
 
 // GetCategoryList 获取分类列表
@@ -77,12 +92,7 @@ func (this *Manager) GetNodeIdList(parentId int64, status, depth int) (result []
 // limit: 返回多少条数据
 // includeParent: 如果有传递 parentId 参数，将可以通过此参数设定是否需要返回 parentId 对应的分类信息
 func (this *Manager) GetCategoryList(parentId int64, cType, status, depth int, name string, limit uint64, includeParent bool, result interface{}) (err error) {
-	return this.getCategoryList(parentId, 0, status, depth, name, limit, true, result)
-}
-
-// GetIdList 获取指定分类的子分类 id 列表，返回的 id 列表包含指定的分类
-func (this *Manager) GetIdList(parentId int64, status, depth int) (result []int64, err error) {
-	return this.getIdList(parentId, status, depth, true)
+	return this.getCategoryList(parentId, cType, status, depth, name, limit, includeParent, result)
 }
 
 // GetParentList 获取指定分类到 root 分类的完整分类列表
@@ -90,8 +100,8 @@ func (this *Manager) GetParentList(id int64, status int, result interface{}) (er
 	return this.getPathList(id, status, false, result)
 }
 
-// GetPathList 获取指定分类到 root 分类的完整分类列表，包括自身
-func (this *Manager) GetPathList(id int64, status int, result interface{}) (err error) {
+// GetParentPathList 获取指定分类到 root 分类的完整分类列表，返回的分类列表包括 id 对应的分类
+func (this *Manager) GetParentPathList(id int64, status int, result interface{}) (err error) {
 	return this.getPathList(id, status, true, result)
 }
 
