@@ -1,6 +1,5 @@
 package nest
 
-
 // --------------------------------------------------------------------------------
 // AddRoot 添加顶级分类
 func (this *Manager) AddRoot(cType int, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
