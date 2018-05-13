@@ -58,15 +58,6 @@ func (this *Manager) GetCategoryWithName(cType int, name string, result interfac
 	return this.getCategoryWithName(cType, name, result)
 }
 
-// GetCategoryAdvList 获取分类列表
-// parentId: 父分类id，当此参数的值大于 0 的时候，将忽略 cType 参数
-// cType: 指定筛选分类的类型
-// status: 指定筛选分类的状态
-// depth: 指定要获取多少级别内的分类
-func (this *Manager) GetCategoryAdvList(parentId int64, cType, status, depth int, name string, limit uint64, result interface{}) (err error) {
-	return this.getCategoryList(parentId, cType, status, depth, name, limit, false, result)
-}
-
 // GetNodeList 获取指定分类的子分类
 func (this *Manager) GetNodeList(parentId int64, status, depth int, result interface{}) (err error) {
 	return this.getCategoryList(parentId, 0, status, depth, "", 0, false, result)
@@ -77,9 +68,16 @@ func (this *Manager) GetNodeIdList(parentId int64, status, depth int) (result []
 	return this.getIdList(parentId, status, depth, false)
 }
 
-// GetCategoryList 获取指定分类的子分类列表，返回的列表包含指定的分类
-func (this *Manager) GetCategoryList(parentId int64, status, depth int, result interface{}) (err error) {
-	return this.getCategoryList(parentId, 0, status, depth, "", 0, true, result)
+// GetCategoryList 获取分类列表
+// parentId: 父分类id，当此参数的值大于 0 的时候，将忽略 cType 参数
+// cType: 指定筛选分类的类型
+// status: 指定筛选分类的状态
+// depth: 指定要获取多少级别内的分类
+// name: 模糊匹配 name 字段
+// limit: 返回多少条数据
+// includeParent: 如果有传递 parentId 参数，将可以通过此参数设定是否需要返回 parentId 对应的分类信息
+func (this *Manager) GetCategoryList(parentId int64, cType, status, depth int, name string, limit uint64, includeParent bool, result interface{}) (err error) {
+	return this.getCategoryList(parentId, 0, status, depth, name, limit, true, result)
 }
 
 // GetIdList 获取指定分类的子分类 id 列表，返回的 id 列表包含指定的分类
@@ -87,7 +85,7 @@ func (this *Manager) GetIdList(parentId int64, status, depth int) (result []int6
 	return this.getIdList(parentId, status, depth, true)
 }
 
-// GetParentList 获取指定分类的父分类列表
+// GetParentList 获取指定分类到 root 分类的完整分类列表
 func (this *Manager) GetParentList(id int64, status int, result interface{}) (err error) {
 	return this.getPathList(id, status, false, result)
 }
