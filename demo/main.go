@@ -11,14 +11,14 @@ func main() {
 	var db, _ = sql.Open("mysql", "")
 	var m = nest.NewManager(db, "category")
 
-	var categoryList []*nest.BaseModel
-	err := m.GetNodePathList(1, 0, 1, &categoryList)
+	var nodeList []*nest.Node
+	err := m.GetSubNodeList(2, 0, 1, &nodeList)
 	if err != nil {
 		fmt.Println("err", err)
 		return
 	}
 
-	for _, category := range categoryList {
-		fmt.Println(category.Type, category.Id, category.IsLeafNode(), category.Name, category.LeftValue, category.RightValue)
+	for _, node := range nodeList {
+		fmt.Println(node.Type, node.Id, node.IsLeaf(), node.Name, node.LeftValue, node.RightValue)
 	}
 }

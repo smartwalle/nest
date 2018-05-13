@@ -6,25 +6,25 @@ import (
 )
 
 const (
-	K_ADD_POSITION_ROOT  = 0 // 顶级分类
-	K_ADD_POSITION_FIRST = 1 // 列表头部 (子分类)
-	K_ADD_POSITION_LAST  = 2 // 列表尾部 (子分类)
-	K_ADD_POSITION_LEFT  = 3 // 左边 (兄弟分类)
-	K_ADD_POSITION_RIGHT = 4 // 右边 (兄弟分类)
+	K_ADD_POSITION_ROOT  = 0 // 顶级节点
+	K_ADD_POSITION_FIRST = 1 // 列表头部 (子节点)
+	K_ADD_POSITION_LAST  = 2 // 列表尾部 (子节点)
+	K_ADD_POSITION_LEFT  = 3 // 左边 (兄弟节点)
+	K_ADD_POSITION_RIGHT = 4 // 右边 (兄弟节点)
 )
 
-// addCategory 添加分类
-// cType: 分类类型（分类组）
+// addNode 添加节点
+// cType: 节点类型（节点组）
 // position:
-// 		1、将新的分类添加到参照分类的子分类列表头部；
-// 		2、将新的分类添加到参照分类的子分类列表尾部；
-// 		3、将新的分类添加到参照分类的左边；
-// 		4、将新的分类添加到参照分类的右边；
-// referTo: 参照分类 id，如果值等于 0，则表示添加顶级分类
-// name: 分类名
-// status: 分类状态 1000、有效；2000、无效
+// 		1、将新的节点添加到参照节点的子节点列表头部；
+// 		2、将新的节点添加到参照节点的子节点列表尾部；
+// 		3、将新的节点添加到参照节点的左边；
+// 		4、将新的节点添加到参照节点的右边；
+// referTo: 参照节点 id，如果值等于 0，则表示添加顶级节点
+// name: 节点名
+// status: 节点状态 1000、有效；2000、无效
 // ext: 其它数据
-func (this *Manager) addCategory(cId int64, cType, position int, referTo int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
+func (this *Manager) addNode(cId int64, cType, position int, referTo int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
 	var sess = this.DB
 
 	// 锁表
@@ -41,31 +41,31 @@ func (this *Manager) addCategory(cId int64, cType, position int, referTo int64, 
 
 	var tx = dbs.MustTx(sess)
 
-	// 查询出参照分类的信息
-	var referCategory *BaseModel
+	// 查询出参照节点的信息
+	var referNode *Node
 
 	if position == K_ADD_POSITION_ROOT {
-		// 如果是添加顶级分类，那么参照分类为 right value 最大的
-		if referCategory, err = this._getCategoryWithMaxRightValue(tx, cType); err != nil {
+		// 如果是添加顶级节点，那么参照节点为 right value 最大的
+		if referNode, err = this._getNodeWithMaxRightValue(tx, cType); err != nil {
 			return 0, err
 		}
 
-		// 如果参照分类为 nil，则创建一个虚拟的
-		if referCategory == nil {
-			referCategory = &BaseModel{}
-			referCategory.Id = -1
-			referCategory.Type = cType
-			referCategory.LeftValue = 0
-			referCategory.RightValue = 0
-			referCategory.Depth = 1
+		// 如果参照节点为 nil，则创建一个虚拟的
+		if referNode == nil {
+			referNode = &Node{}
+			referNode.Id = -1
+			referNode.Type = cType
+			referNode.LeftValue = 0
+			referNode.RightValue = 0
+			referNode.Depth = 1
 		}
 	} else {
-		if referCategory, err = this._getCategoryWithId(tx, referTo); err != nil {
+		if referNode, err = this._getNodeWithId(tx, referTo); err != nil {
 			return 0, err
 		}
-		if referCategory == nil {
+		if referNode == nil {
 			tx.Rollback()
-			return 0, ErrCategoryNotExists
+			return 0, ErrNodeNotExist
 		}
 	}
 
@@ -74,7 +74,7 @@ func (this *Manager) addCategory(cId int64, cType, position int, referTo int64, 
 		ext = exts[0]
 	}
 
-	if result, err = this.addCategoryWithPosition(tx, referCategory, cId, position, name, status, ext); err != nil {
+	if result, err = this.addNodeWithPosition(tx, referNode, cId, position, name, status, ext); err != nil {
 		return 0, err
 	}
 
@@ -84,35 +84,35 @@ func (this *Manager) addCategory(cId int64, cType, position int, referTo int64, 
 	return result, nil
 }
 
-func (this *Manager) addCategoryWithPosition(tx *dbs.Tx, refer *BaseModel, cId int64, position int, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) addNodeWithPosition(tx *dbs.Tx, refer *Node, cId int64, position int, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	switch position {
 	case K_ADD_POSITION_ROOT:
-		return this.insertCategoryToRoot(tx, refer, cId, name, status, ext)
+		return this.insertNodeToRoot(tx, refer, cId, name, status, ext)
 	case K_ADD_POSITION_FIRST:
-		return this.insertCategoryToFirst(tx, refer, cId, name, status, ext)
+		return this.insertNodeToFirst(tx, refer, cId, name, status, ext)
 	case K_ADD_POSITION_LAST:
-		return this.insertCategoryToLast(tx, refer, cId, name, status, ext)
+		return this.insertNodeToLast(tx, refer, cId, name, status, ext)
 	case K_ADD_POSITION_LEFT:
-		return this.insertCategoryToLeft(tx, refer, cId, name, status, ext)
+		return this.insertNodeToLeft(tx, refer, cId, name, status, ext)
 	case K_ADD_POSITION_RIGHT:
-		return this.insertCategoryToRight(tx, refer, cId, name, status, ext)
+		return this.insertNodeToRight(tx, refer, cId, name, status, ext)
 	}
 	tx.Rollback()
 	return 0, ErrUnknownPosition
 }
 
-func (this *Manager) insertCategoryToRoot(tx *dbs.Tx, refer *BaseModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertNodeToRoot(tx *dbs.Tx, refer *Node, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	var cType = refer.Type
 	var leftValue = refer.RightValue + 1
 	var rightValue = refer.RightValue + 2
 	var depth = refer.Depth
-	if id, err = this.insertCategory(tx, cId, cType, name, leftValue, rightValue, depth, status, ext); err != nil {
+	if id, err = this.insertNode(tx, cId, cType, name, leftValue, rightValue, depth, status, ext); err != nil {
 		return 0, err
 	}
 	return id, nil
 }
 
-func (this *Manager) insertCategoryToFirst(tx *dbs.Tx, refer *BaseModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertNodeToFirst(tx *dbs.Tx, refer *Node, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
@@ -131,13 +131,13 @@ func (this *Manager) insertCategoryToFirst(tx *dbs.Tx, refer *BaseModel, cId int
 		return 0, err
 	}
 
-	if id, err = this.insertCategory(tx, cId, refer.Type, name, refer.LeftValue+1, refer.LeftValue+2, refer.Depth+1, status, ext); err != nil {
+	if id, err = this.insertNode(tx, cId, refer.Type, name, refer.LeftValue+1, refer.LeftValue+2, refer.Depth+1, status, ext); err != nil {
 		return 0, err
 	}
 	return id, nil
 }
 
-func (this *Manager) insertCategoryToLast(tx *dbs.Tx, refer *BaseModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertNodeToLast(tx *dbs.Tx, refer *Node, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
@@ -156,14 +156,14 @@ func (this *Manager) insertCategoryToLast(tx *dbs.Tx, refer *BaseModel, cId int6
 		return 0, err
 	}
 
-	if id, err = this.insertCategory(tx, cId, refer.Type, name, refer.RightValue, refer.RightValue+1, refer.Depth+1, status, ext); err != nil {
+	if id, err = this.insertNode(tx, cId, refer.Type, name, refer.RightValue, refer.RightValue+1, refer.Depth+1, status, ext); err != nil {
 		return 0, err
 	}
 
 	return id, nil
 }
 
-func (this *Manager) insertCategoryToLeft(tx *dbs.Tx, refer *BaseModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertNodeToLeft(tx *dbs.Tx, refer *Node, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
@@ -182,13 +182,13 @@ func (this *Manager) insertCategoryToLeft(tx *dbs.Tx, refer *BaseModel, cId int6
 		return 0, err
 	}
 
-	if id, err = this.insertCategory(tx, cId, refer.Type, name, refer.LeftValue, refer.LeftValue+1, refer.Depth, status, ext); err != nil {
+	if id, err = this.insertNode(tx, cId, refer.Type, name, refer.LeftValue, refer.LeftValue+1, refer.Depth, status, ext); err != nil {
 		return 0, err
 	}
 	return id, nil
 }
 
-func (this *Manager) insertCategoryToRight(tx *dbs.Tx, refer *BaseModel, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertNodeToRight(tx *dbs.Tx, refer *Node, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
@@ -207,13 +207,13 @@ func (this *Manager) insertCategoryToRight(tx *dbs.Tx, refer *BaseModel, cId int
 		return 0, err
 	}
 
-	if id, err = this.insertCategory(tx, cId, refer.Type, name, refer.RightValue+1, refer.RightValue+2, refer.Depth, status, ext); err != nil {
+	if id, err = this.insertNode(tx, cId, refer.Type, name, refer.RightValue+1, refer.RightValue+2, refer.Depth, status, ext); err != nil {
 		return 0, err
 	}
 	return id, nil
 }
 
-func (this *Manager) insertCategory(tx *dbs.Tx, cId int64, cType int, name string, leftValue, rightValue, depth, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertNode(tx *dbs.Tx, cId int64, cType int, name string, leftValue, rightValue, depth, status int, ext map[string]interface{}) (id int64, err error) {
 	var now = time.Now()
 	var ib = dbs.NewInsertBuilder()
 	ib.Table(this.Table)
