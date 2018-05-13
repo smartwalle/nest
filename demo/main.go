@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	var db, _ = sql.Open("mysql", "root:yangfeng09@tcp(tw.smartwalle.tk:3306)/test?parseTime=true")
+	var db, _ = sql.Open("mysql", "")
 	var m = nest.NewManager(db, "category")
 
 	var categoryList []*nest.BaseModel
