@@ -25,21 +25,16 @@ const (
 // status: 节点状态 1000、有效；2000、无效
 // ext: 其它数据
 func (this *Manager) addNode(cId int64, cType, position int, referTo int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
-	var sess = this.DB
-
 	// 锁表
-	//var lock = dbs.WriteLock(this.Table)
-	//if _, err = lock.ExecRaw(sess); err != nil {
-	//	return 0, err
-	//}
-	//
-	//// 解锁
-	//defer func() {
-	//	var unlock = dbs.UnlockTable()
-	//	unlock.ExecRaw(sess)
-	//}()
+	this.lockTable()
+	// 解锁
+	defer func() {
+		this.unlockTable()
+	}()
 
-	var tx = dbs.MustTx(sess)
+	time.Sleep(time.Second * 5)
+
+	var tx = dbs.MustTx(this.DB)
 
 	// 查询出参照节点的信息
 	var referNode *Node

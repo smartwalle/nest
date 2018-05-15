@@ -48,21 +48,14 @@ func (this *Manager) updateNode(id int64, updateInfo map[string]interface{}) (er
 // 		1、子节点的状态会一起更新，不会改变父子关系；
 // 		2、子节点的状态不会受到影响，并且所有子节点会向上移动一级（只针对把状态设置为 无效 的时候）；
 func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err error) {
-	var sess = this.DB
+	// 锁表
+	this.lockTable()
+	// 解锁
+	defer func() {
+		this.unlockTable()
+	}()
 
-	//// 锁表
-	//var lock = dbs.WriteLock(this.Table)
-	//if _, err = lock.ExecRaw(sess); err != nil {
-	//	return err
-	//}
-	//
-	//// 解锁
-	//defer func() {
-	//	var unlock = dbs.UnlockTable()
-	//	unlock.ExecRaw(sess)
-	//}()
-
-	var tx = dbs.MustTx(sess)
+	var tx = dbs.MustTx(this.DB)
 	var node *Node
 	if node, err = this._getNodeWithId(tx, id); err != nil {
 		return err
@@ -137,21 +130,14 @@ func (this *Manager) moveNode(position int, id, rid int64) (err error) {
 		return ErrParentNotAllowed
 	}
 
-	var sess = this.DB
+	// 锁表
+	this.lockTable()
+	// 解锁
+	defer func() {
+		this.unlockTable()
+	}()
 
-	//// 锁表
-	//var lock = dbs.WriteLock(this.Table)
-	//if _, err = lock.ExecRaw(sess); err != nil {
-	//	return err
-	//}
-	//
-	//// 解锁
-	//defer func() {
-	//	var unlock = dbs.UnlockTable()
-	//	unlock.ExecRaw(sess)
-	//}()
-
-	var tx = dbs.MustTx(sess)
+	var tx = dbs.MustTx(this.DB)
 
 	// 判断被移动的节点是否存在
 	var node *Node
