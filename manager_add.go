@@ -29,14 +29,14 @@ func (this *Manager) addNode(cId int64, cType, position int, referTo int64, name
 
 	// 锁表
 	var lock = dbs.WriteLock(this.Table)
-	if _, err = lock.Exec(sess); err != nil {
+	if _, err = lock.ExecRaw(sess); err != nil {
 		return 0, err
 	}
 
 	// 解锁
 	defer func() {
 		var unlock = dbs.UnlockTable()
-		unlock.Exec(sess)
+		unlock.ExecRaw(sess)
 	}()
 
 	var tx = dbs.MustTx(sess)

@@ -52,14 +52,14 @@ func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err err
 
 	// 锁表
 	var lock = dbs.WriteLock(this.Table)
-	if _, err = lock.Exec(sess); err != nil {
+	if _, err = lock.ExecRaw(sess); err != nil {
 		return err
 	}
 
 	// 解锁
 	defer func() {
 		var unlock = dbs.UnlockTable()
-		unlock.Exec(sess)
+		unlock.ExecRaw(sess)
 	}()
 
 	var tx = dbs.MustTx(sess)
@@ -141,14 +141,14 @@ func (this *Manager) moveNode(position int, id, rid int64) (err error) {
 
 	// 锁表
 	var lock = dbs.WriteLock(this.Table)
-	if _, err = lock.Exec(sess); err != nil {
+	if _, err = lock.ExecRaw(sess); err != nil {
 		return err
 	}
 
 	// 解锁
 	defer func() {
 		var unlock = dbs.UnlockTable()
-		unlock.Exec(sess)
+		unlock.ExecRaw(sess)
 	}()
 
 	var tx = dbs.MustTx(sess)
