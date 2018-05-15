@@ -50,17 +50,17 @@ func (this *Manager) updateNode(id int64, updateInfo map[string]interface{}) (er
 func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err error) {
 	var sess = this.DB
 
-	// 锁表
-	var lock = dbs.WriteLock(this.Table)
-	if _, err = lock.ExecRaw(sess); err != nil {
-		return err
-	}
-
-	// 解锁
-	defer func() {
-		var unlock = dbs.UnlockTable()
-		unlock.ExecRaw(sess)
-	}()
+	//// 锁表
+	//var lock = dbs.WriteLock(this.Table)
+	//if _, err = lock.ExecRaw(sess); err != nil {
+	//	return err
+	//}
+	//
+	//// 解锁
+	//defer func() {
+	//	var unlock = dbs.UnlockTable()
+	//	unlock.ExecRaw(sess)
+	//}()
 
 	var tx = dbs.MustTx(sess)
 	var node *Node
@@ -139,17 +139,17 @@ func (this *Manager) moveNode(position int, id, rid int64) (err error) {
 
 	var sess = this.DB
 
-	// 锁表
-	var lock = dbs.WriteLock(this.Table)
-	if _, err = lock.ExecRaw(sess); err != nil {
-		return err
-	}
-
-	// 解锁
-	defer func() {
-		var unlock = dbs.UnlockTable()
-		unlock.ExecRaw(sess)
-	}()
+	//// 锁表
+	//var lock = dbs.WriteLock(this.Table)
+	//if _, err = lock.ExecRaw(sess); err != nil {
+	//	return err
+	//}
+	//
+	//// 解锁
+	//defer func() {
+	//	var unlock = dbs.UnlockTable()
+	//	unlock.ExecRaw(sess)
+	//}()
 
 	var tx = dbs.MustTx(sess)
 

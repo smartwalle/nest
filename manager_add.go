@@ -28,16 +28,16 @@ func (this *Manager) addNode(cId int64, cType, position int, referTo int64, name
 	var sess = this.DB
 
 	// 锁表
-	var lock = dbs.WriteLock(this.Table)
-	if _, err = lock.ExecRaw(sess); err != nil {
-		return 0, err
-	}
-
-	// 解锁
-	defer func() {
-		var unlock = dbs.UnlockTable()
-		unlock.ExecRaw(sess)
-	}()
+	//var lock = dbs.WriteLock(this.Table)
+	//if _, err = lock.ExecRaw(sess); err != nil {
+	//	return 0, err
+	//}
+	//
+	//// 解锁
+	//defer func() {
+	//	var unlock = dbs.UnlockTable()
+	//	unlock.ExecRaw(sess)
+	//}()
 
 	var tx = dbs.MustTx(sess)
 
