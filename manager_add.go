@@ -32,8 +32,6 @@ func (this *Manager) addNode(cId int64, cType, position int, referTo int64, name
 		this.unlockTable()
 	}()
 
-	time.Sleep(time.Second * 5)
-
 	var tx = dbs.MustTx(this.DB)
 
 	// 查询出参照节点的信息
