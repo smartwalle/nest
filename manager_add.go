@@ -25,13 +25,6 @@ const (
 // status: 节点状态 1000、有效；2000、无效
 // ext: 其它数据
 func (this *Manager) addNode(cId int64, cType, position int, referTo int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
-	// 锁表
-	this.lockTable()
-	// 解锁
-	defer func() {
-		this.unlockTable()
-	}()
-
 	var tx = dbs.MustTx(this.DB)
 
 	// 查询出参照节点的信息

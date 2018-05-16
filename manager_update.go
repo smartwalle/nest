@@ -48,13 +48,6 @@ func (this *Manager) updateNode(id int64, updateInfo map[string]interface{}) (er
 // 		1、子节点的状态会一起更新，不会改变父子关系；
 // 		2、子节点的状态不会受到影响，并且所有子节点会向上移动一级（只针对把状态设置为 无效 的时候）；
 func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err error) {
-	// 锁表
-	this.lockTable()
-	// 解锁
-	defer func() {
-		this.unlockTable()
-	}()
-
 	var tx = dbs.MustTx(this.DB)
 	var node *Node
 	if node, err = this._getNodeWithId(tx, id); err != nil {
@@ -129,13 +122,6 @@ func (this *Manager) moveNode(position int, id, rid int64) (err error) {
 	if id == rid {
 		return ErrParentNotAllowed
 	}
-
-	// 锁表
-	this.lockTable()
-	// 解锁
-	defer func() {
-		this.unlockTable()
-	}()
 
 	var tx = dbs.MustTx(this.DB)
 
