@@ -3,6 +3,7 @@ package nest
 import (
 	"github.com/smartwalle/dbs"
 	"time"
+	"sort"
 )
 
 const (
@@ -30,7 +31,15 @@ func (this *Manager) updateNode(id int64, updateInfo map[string]interface{}) (er
 	delete(updateInfo, "created_on")
 
 	updateInfo["updated_on"] = time.Now()
-	ub.SetMap(updateInfo)
+
+	var keys = make([]string, 0, len(updateInfo) + 1)
+	for key := range updateInfo {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		ub.SET(key, updateInfo[key])
+	}
 
 	ub.Where("id = ?", id)
 	ub.Limit(1)

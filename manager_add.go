@@ -3,6 +3,7 @@ package nest
 import (
 	"github.com/smartwalle/dbs"
 	"time"
+	"sort"
 )
 
 const (
@@ -218,8 +219,13 @@ func (this *Manager) insertNode(tx *dbs.Tx, cId int64, cType int, name string, l
 	ext["created_on"] = now
 	ext["updated_on"] = now
 
-	for key, value := range ext {
-		ib.SET(key, value)
+	var keys = make([]string, 0, len(ext) + 9)
+	for key := range ext {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		ib.SET(key, ext[key])
 	}
 
 	if result, err := tx.ExecInsertBuilder(ib); err != nil {
