@@ -4,19 +4,22 @@ import (
 	"github.com/smartwalle/dbs"
 )
 
-func (this *Manager) _getNodeWithId(tx *dbs.Tx, id int64) (result *Node, err error) {
+func (this *Manager) _getNodeWithId(tx dbs.TX, id int64) (result *Node, err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id", "c.type", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
 	sb.From(this.Table, "AS c")
 	sb.Where("c.id = ?", id)
 	sb.Limit(1)
-	if err = tx.ExecSelectBuilder(sb, &result); err != nil {
+	//if err = tx.ExecSelectBuilder(sb, &result); err != nil {
+	//	return nil, err
+	//}
+	if err = sb.ScanTx(tx, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (this *Manager) _getNodeWithMaxRightValue(tx *dbs.Tx, cType int) (result *Node, err error) {
+func (this *Manager) _getNodeWithMaxRightValue(tx dbs.TX, cType int) (result *Node, err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id", "c.type", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
 	sb.From(this.Table, "AS c")
@@ -25,7 +28,10 @@ func (this *Manager) _getNodeWithMaxRightValue(tx *dbs.Tx, cType int) (result *N
 	}
 	sb.OrderBy("c.right_value DESC")
 	sb.Limit(1)
-	if err = tx.ExecSelectBuilder(sb, &result); err != nil {
+	//if err = tx.ExecSelectBuilder(sb, &result); err != nil {
+	//	return nil, err
+	//}
+	if err = sb.ScanTx(tx, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -44,13 +50,16 @@ func (this *Manager) getNode(id int64, result interface{}) (err error) {
 	return nil
 }
 
-func (this *Manager) getNodeWithId(tx *dbs.Tx, id int64, result interface{}) (err error) {
+func (this *Manager) getNodeWithId(tx dbs.TX, id int64, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
 	sb.From(this.Table, "AS c")
 	sb.Where("c.id = ?", id)
 	sb.Limit(1)
-	if err = tx.ExecSelectBuilder(sb, result); err != nil {
+	//if err = tx.ExecSelectBuilder(sb, result); err != nil {
+	//	return err
+	//}
+	if err = sb.ScanTx(tx, result); err != nil {
 		return err
 	}
 	return nil

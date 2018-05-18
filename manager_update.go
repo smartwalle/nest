@@ -85,7 +85,10 @@ func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err err
 			ub.SET("updated_on", now)
 			ub.Where("id = ?", id)
 			ub.Limit(1)
-			if _, err := tx.ExecUpdateBuilder(ub); err != nil {
+			//if _, err := tx.ExecUpdateBuilder(ub); err != nil {
+			//	return err
+			//}
+			if _, err := ub.ExecTx(tx); err != nil {
 				return err
 			}
 
@@ -96,7 +99,10 @@ func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err err
 			ubChild.SET("depth", dbs.SQL("depth-1"))
 			ubChild.SET("updated_on", now)
 			ubChild.Where("type = ? AND left_value > ? AND right_value < ?", node.Type, node.LeftValue, node.RightValue)
-			if _, err := tx.ExecUpdateBuilder(ubChild); err != nil {
+			//if _, err := tx.ExecUpdateBuilder(ubChild); err != nil {
+			//	return err
+			//}
+			if _, err := ubChild.ExecTx(tx); err != nil {
 				return err
 			}
 		}
@@ -106,7 +112,10 @@ func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err err
 		ub.SET("status", status)
 		ub.SET("updated_on", now)
 		ub.Where("type = ? AND left_value >= ? AND right_value <= ?", node.Type, node.LeftValue, node.RightValue)
-		if _, err := tx.ExecUpdateBuilder(ub); err != nil {
+		//if _, err := tx.ExecUpdateBuilder(ub); err != nil {
+		//	return err
+		//}
+		if _, err := ub.ExecTx(tx); err != nil {
 			return err
 		}
 	case 0:
@@ -116,7 +125,10 @@ func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err err
 		ub.SET("updated_on", now)
 		ub.Where("id = ?", id)
 		ub.Limit(1)
-		if _, err := tx.ExecUpdateBuilder(ub); err != nil {
+		//if _, err := tx.ExecUpdateBuilder(ub); err != nil {
+		//	return err
+		//}
+		if _, err := ub.ExecTx(tx); err != nil {
 			return err
 		}
 	}
@@ -207,7 +219,7 @@ func (this *Manager) moveNode(position int, id, rid int64) (err error) {
 	return nil
 }
 
-func (this *Manager) moveNodeWithPosition(tx *dbs.Tx, position int, node, refer *Node, updateIdList []int64) (err error) {
+func (this *Manager) moveNodeWithPosition(tx dbs.TX, position int, node, refer *Node, updateIdList []int64) (err error) {
 	var nodeLen = node.RightValue - node.LeftValue + 1
 	var now = time.Now()
 
@@ -217,7 +229,10 @@ func (this *Manager) moveNodeWithPosition(tx *dbs.Tx, position int, node, refer 
 	ubTreeLeft.SET("left_value", dbs.SQL("left_value - ?", nodeLen))
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("type = ? AND left_value > ?", node.Type, node.RightValue)
-	if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
+	//if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
+	//	return err
+	//}
+	if _, err = ubTreeLeft.ExecTx(tx); err != nil {
 		return err
 	}
 	var ubTreeRight = dbs.NewUpdateBuilder()
@@ -225,7 +240,10 @@ func (this *Manager) moveNodeWithPosition(tx *dbs.Tx, position int, node, refer 
 	ubTreeRight.SET("right_value", dbs.SQL("right_value - ?", nodeLen))
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("type = ? AND right_value > ?", node.Type, node.RightValue)
-	if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
+	//if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
+	//	return err
+	//}
+	if _, err = ubTreeRight.ExecTx(tx); err != nil {
 		return err
 	}
 
@@ -252,7 +270,7 @@ func (this *Manager) moveNodeWithPosition(tx *dbs.Tx, position int, node, refer 
 	return ErrUnknownPosition
 }
 
-func (this *Manager) moveToFirst(tx *dbs.Tx, node, parent *Node, updateIdList []int64, nodeLen int) (err error) {
+func (this *Manager) moveToFirst(tx dbs.TX, node, parent *Node, updateIdList []int64, nodeLen int) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
@@ -262,7 +280,10 @@ func (this *Manager) moveToFirst(tx *dbs.Tx, node, parent *Node, updateIdList []
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("type = ? AND left_value > ?", parent.Type, parent.LeftValue)
 	ubTreeLeft.Where(dbs.NotIn("id", updateIdList))
-	if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
+	//if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
+	//	return err
+	//}
+	if _, err = ubTreeLeft.ExecTx(tx); err != nil {
 		return err
 	}
 
@@ -272,7 +293,10 @@ func (this *Manager) moveToFirst(tx *dbs.Tx, node, parent *Node, updateIdList []
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("type = ? AND right_value > ?", parent.Type, parent.LeftValue)
 	ubTreeRight.Where(dbs.NotIn("id", updateIdList))
-	if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
+	//if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
+	//	return err
+	//}
+	if _, err = ubTreeRight.ExecTx(tx); err != nil {
 		return err
 	}
 
@@ -288,14 +312,17 @@ func (this *Manager) moveToFirst(tx *dbs.Tx, node, parent *Node, updateIdList []
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
 	ubTree.SET("updated_on", now)
 	ubTree.Where(dbs.IN("id", updateIdList))
-	if _, err = tx.ExecUpdateBuilder(ubTree); err != nil {
+	//if _, err = tx.ExecUpdateBuilder(ubTree); err != nil {
+	//	return err
+	//}
+	if _, err = ubTree.ExecTx(tx); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (this *Manager) moveToLast(tx *dbs.Tx, node, parent *Node, updateIdList []int64, nodeLen int) (err error) {
+func (this *Manager) moveToLast(tx dbs.TX, node, parent *Node, updateIdList []int64, nodeLen int) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
@@ -305,7 +332,10 @@ func (this *Manager) moveToLast(tx *dbs.Tx, node, parent *Node, updateIdList []i
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("type = ? AND left_value > ?", parent.Type, parent.RightValue)
 	ubTreeLeft.Where(dbs.NotIn("id", updateIdList))
-	if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
+	//if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
+	//	return err
+	//}
+	if _, err = ubTreeLeft.ExecTx(tx); err != nil {
 		return err
 	}
 
@@ -315,7 +345,10 @@ func (this *Manager) moveToLast(tx *dbs.Tx, node, parent *Node, updateIdList []i
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("type = ? AND right_value >= ?", parent.Type, parent.RightValue)
 	ubTreeRight.Where(dbs.NotIn("id", updateIdList))
-	if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
+	//if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
+	//	return err
+	//}
+	if _, err = ubTreeRight.ExecTx(tx); err != nil {
 		return err
 	}
 
@@ -331,14 +364,17 @@ func (this *Manager) moveToLast(tx *dbs.Tx, node, parent *Node, updateIdList []i
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
 	ubTree.SET("updated_on", now)
 	ubTree.Where(dbs.IN("id", updateIdList))
-	if _, err = tx.ExecUpdateBuilder(ubTree); err != nil {
+	//if _, err = tx.ExecUpdateBuilder(ubTree); err != nil {
+	//	return err
+	//}
+	if _, err = ubTree.ExecTx(tx); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (this *Manager) moveToLeft(tx *dbs.Tx, node, refer *Node, updateIdList []int64, nodeLen int) (err error) {
+func (this *Manager) moveToLeft(tx dbs.TX, node, refer *Node, updateIdList []int64, nodeLen int) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
@@ -348,7 +384,10 @@ func (this *Manager) moveToLeft(tx *dbs.Tx, node, refer *Node, updateIdList []in
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("type = ? AND left_value >= ?", refer.Type, refer.LeftValue)
 	ubTreeLeft.Where(dbs.NotIn("id", updateIdList))
-	if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
+	//if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
+	//	return err
+	//}
+	if _, err = ubTreeLeft.ExecTx(tx); err != nil {
 		return err
 	}
 
@@ -358,7 +397,10 @@ func (this *Manager) moveToLeft(tx *dbs.Tx, node, refer *Node, updateIdList []in
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("type = ? AND right_value >= ?", refer.Type, refer.LeftValue)
 	ubTreeRight.Where(dbs.NotIn("id", updateIdList))
-	if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
+	//if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
+	//	return err
+	//}
+	if _, err = ubTreeRight.ExecTx(tx); err != nil {
 		return err
 	}
 
@@ -374,14 +416,17 @@ func (this *Manager) moveToLeft(tx *dbs.Tx, node, refer *Node, updateIdList []in
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
 	ubTree.SET("updated_on", now)
 	ubTree.Where(dbs.IN("id", updateIdList))
-	if _, err = tx.ExecUpdateBuilder(ubTree); err != nil {
+	//if _, err = tx.ExecUpdateBuilder(ubTree); err != nil {
+	//	return err
+	//}
+	if _, err = ubTree.ExecTx(tx); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (this *Manager) moveToRight(tx *dbs.Tx, node, refer *Node, updateIdList []int64, nodeLen int) (err error) {
+func (this *Manager) moveToRight(tx dbs.TX, node, refer *Node, updateIdList []int64, nodeLen int) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
@@ -391,7 +436,10 @@ func (this *Manager) moveToRight(tx *dbs.Tx, node, refer *Node, updateIdList []i
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("type = ? AND left_value > ?", refer.Type, refer.RightValue)
 	ubTreeLeft.Where(dbs.NotIn("id", updateIdList))
-	if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
+	//if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
+	//	return err
+	//}
+	if _, err = ubTreeLeft.ExecTx(tx); err != nil {
 		return err
 	}
 
@@ -401,7 +449,10 @@ func (this *Manager) moveToRight(tx *dbs.Tx, node, refer *Node, updateIdList []i
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("type = ? AND right_value > ?", refer.Type, refer.RightValue)
 	ubTreeRight.Where(dbs.NotIn("id", updateIdList))
-	if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
+	//if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
+	//	return err
+	//}
+	if _, err = ubTreeRight.ExecTx(tx); err != nil {
 		return err
 	}
 
@@ -415,7 +466,10 @@ func (this *Manager) moveToRight(tx *dbs.Tx, node, refer *Node, updateIdList []i
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
 	ubTree.SET("updated_on", now)
 	ubTree.Where(dbs.IN("id", updateIdList))
-	if _, err = tx.ExecUpdateBuilder(ubTree); err != nil {
+	//if _, err = tx.ExecUpdateBuilder(ubTree); err != nil {
+	//	return err
+	//}
+	if _, err = ubTree.ExecTx(tx); err != nil {
 		return err
 	}
 
