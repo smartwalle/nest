@@ -234,7 +234,7 @@ func (this *Manager) insertNode(tx dbs.TX, cId int64, ctx int, name string, left
 	}
 
 	ext["id"] = id
-	ext["type"] = ctx
+	ext["ctx"] = ctx
 	ext["name"] = name
 	ext["left_value"] = leftValue
 	ext["right_value"] = rightValue
