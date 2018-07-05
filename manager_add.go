@@ -15,7 +15,7 @@ const (
 )
 
 // addNode 添加节点
-// cType: 节点类型（节点组）
+// ctx: 节点类型（节点组）
 // position:
 // 		1、将新的节点添加到参照节点的子节点列表头部；
 // 		2、将新的节点添加到参照节点的子节点列表尾部；
@@ -25,7 +25,7 @@ const (
 // name: 节点名
 // status: 节点状态 1000、有效；2000、无效
 // ext: 其它数据
-func (this *Manager) addNode(cId int64, cType, position int, referTo int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
+func (this *Manager) addNode(cId int64, ctx, position int, referTo int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
 	var tx = dbs.MustTx(this.DB)
 
 	// 查询出参照节点的信息
@@ -33,7 +33,7 @@ func (this *Manager) addNode(cId int64, cType, position int, referTo int64, name
 
 	if position == K_ADD_POSITION_ROOT {
 		// 如果是添加顶级节点，那么参照节点为 right value 最大的
-		if referNode, err = this._getNodeWithMaxRightValue(tx, cType); err != nil {
+		if referNode, err = this._getNodeWithMaxRightValue(tx, ctx); err != nil {
 			return 0, err
 		}
 
@@ -41,7 +41,7 @@ func (this *Manager) addNode(cId int64, cType, position int, referTo int64, name
 		if referNode == nil {
 			referNode = &Node{}
 			referNode.Id = -1
-			referNode.Type = cType
+			referNode.Ctx = ctx
 			referNode.LeftValue = 0
 			referNode.RightValue = 0
 			referNode.Depth = 1
@@ -89,11 +89,11 @@ func (this *Manager) addNodeWithPosition(tx dbs.TX, refer *Node, cId int64, posi
 }
 
 func (this *Manager) insertNodeToRoot(tx dbs.TX, refer *Node, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
-	var cType = refer.Type
+	var ctx = refer.Ctx
 	var leftValue = refer.RightValue + 1
 	var rightValue = refer.RightValue + 2
 	var depth = refer.Depth
-	if id, err = this.insertNode(tx, cId, cType, name, leftValue, rightValue, depth, status, ext); err != nil {
+	if id, err = this.insertNode(tx, cId, ctx, name, leftValue, rightValue, depth, status, ext); err != nil {
 		return 0, err
 	}
 	return id, nil
@@ -104,7 +104,7 @@ func (this *Manager) insertNodeToFirst(tx dbs.TX, refer *Node, cId int64, name s
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
-	ubLeft.Where("type = ? AND left_value > ?", refer.Type, refer.LeftValue)
+	ubLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.LeftValue)
 	//if _, err = tx.ExecUpdateBuilder(ubLeft); err != nil {
 	//	return 0, err
 	//}
@@ -116,7 +116,7 @@ func (this *Manager) insertNodeToFirst(tx dbs.TX, refer *Node, cId int64, name s
 	ubRight.Table(this.Table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
-	ubRight.Where("type = ? AND right_value > ?", refer.Type, refer.LeftValue)
+	ubRight.Where("ctx = ? AND right_value > ?", refer.Ctx, refer.LeftValue)
 	//if _, err = tx.ExecUpdateBuilder(ubRight); err != nil {
 	//	return 0, err
 	//}
@@ -124,7 +124,7 @@ func (this *Manager) insertNodeToFirst(tx dbs.TX, refer *Node, cId int64, name s
 		return 0, err
 	}
 
-	if id, err = this.insertNode(tx, cId, refer.Type, name, refer.LeftValue+1, refer.LeftValue+2, refer.Depth+1, status, ext); err != nil {
+	if id, err = this.insertNode(tx, cId, refer.Ctx, name, refer.LeftValue+1, refer.LeftValue+2, refer.Depth+1, status, ext); err != nil {
 		return 0, err
 	}
 	return id, nil
@@ -135,7 +135,7 @@ func (this *Manager) insertNodeToLast(tx dbs.TX, refer *Node, cId int64, name st
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
-	ubLeft.Where("type = ? AND left_value > ?", refer.Type, refer.RightValue)
+	ubLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.RightValue)
 	//if _, err = tx.ExecUpdateBuilder(ubLeft); err != nil {
 	//	return 0, err
 	//}
@@ -147,7 +147,7 @@ func (this *Manager) insertNodeToLast(tx dbs.TX, refer *Node, cId int64, name st
 	ubRight.Table(this.Table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
-	ubRight.Where("type = ? AND right_value >= ?", refer.Type, refer.RightValue)
+	ubRight.Where("ctx = ? AND right_value >= ?", refer.Ctx, refer.RightValue)
 	//if _, err = tx.ExecUpdateBuilder(ubRight); err != nil {
 	//	return 0, err
 	//}
@@ -155,7 +155,7 @@ func (this *Manager) insertNodeToLast(tx dbs.TX, refer *Node, cId int64, name st
 		return 0, err
 	}
 
-	if id, err = this.insertNode(tx, cId, refer.Type, name, refer.RightValue, refer.RightValue+1, refer.Depth+1, status, ext); err != nil {
+	if id, err = this.insertNode(tx, cId, refer.Ctx, name, refer.RightValue, refer.RightValue+1, refer.Depth+1, status, ext); err != nil {
 		return 0, err
 	}
 
@@ -167,7 +167,7 @@ func (this *Manager) insertNodeToLeft(tx dbs.TX, refer *Node, cId int64, name st
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
-	ubLeft.Where("type = ? AND left_value >= ?", refer.Type, refer.LeftValue)
+	ubLeft.Where("ctx = ? AND left_value >= ?", refer.Ctx, refer.LeftValue)
 	//if _, err = tx.ExecUpdateBuilder(ubLeft); err != nil {
 	//	return 0, err
 	//}
@@ -179,7 +179,7 @@ func (this *Manager) insertNodeToLeft(tx dbs.TX, refer *Node, cId int64, name st
 	ubRight.Table(this.Table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
-	ubRight.Where("type = ? AND right_value >= ?", refer.Type, refer.LeftValue)
+	ubRight.Where("ctx = ? AND right_value >= ?", refer.Ctx, refer.LeftValue)
 	//if _, err = tx.ExecUpdateBuilder(ubRight); err != nil {
 	//	return 0, err
 	//}
@@ -187,7 +187,7 @@ func (this *Manager) insertNodeToLeft(tx dbs.TX, refer *Node, cId int64, name st
 		return 0, err
 	}
 
-	if id, err = this.insertNode(tx, cId, refer.Type, name, refer.LeftValue, refer.LeftValue+1, refer.Depth, status, ext); err != nil {
+	if id, err = this.insertNode(tx, cId, refer.Ctx, name, refer.LeftValue, refer.LeftValue+1, refer.Depth, status, ext); err != nil {
 		return 0, err
 	}
 	return id, nil
@@ -198,7 +198,7 @@ func (this *Manager) insertNodeToRight(tx dbs.TX, refer *Node, cId int64, name s
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
-	ubLeft.Where("type = ? AND left_value > ?", refer.Type, refer.RightValue)
+	ubLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.RightValue)
 	//if _, err = tx.ExecUpdateBuilder(ubLeft); err != nil {
 	//	return 0, err
 	//}
@@ -210,7 +210,7 @@ func (this *Manager) insertNodeToRight(tx dbs.TX, refer *Node, cId int64, name s
 	ubRight.Table(this.Table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
-	ubRight.Where("type = ? AND right_value > ?", refer.Type, refer.RightValue)
+	ubRight.Where("ctx = ? AND right_value > ?", refer.Ctx, refer.RightValue)
 	//if _, err = tx.ExecUpdateBuilder(ubRight); err != nil {
 	//	return 0, err
 	//}
@@ -218,13 +218,13 @@ func (this *Manager) insertNodeToRight(tx dbs.TX, refer *Node, cId int64, name s
 		return 0, err
 	}
 
-	if id, err = this.insertNode(tx, cId, refer.Type, name, refer.RightValue+1, refer.RightValue+2, refer.Depth, status, ext); err != nil {
+	if id, err = this.insertNode(tx, cId, refer.Ctx, name, refer.RightValue+1, refer.RightValue+2, refer.Depth, status, ext); err != nil {
 		return 0, err
 	}
 	return id, nil
 }
 
-func (this *Manager) insertNode(tx dbs.TX, cId int64, cType int, name string, leftValue, rightValue, depth, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertNode(tx dbs.TX, cId int64, ctx int, name string, leftValue, rightValue, depth, status int, ext map[string]interface{}) (id int64, err error) {
 	var now = time.Now()
 	var ib = dbs.NewInsertBuilder()
 	ib.Table(this.Table)
@@ -234,7 +234,7 @@ func (this *Manager) insertNode(tx dbs.TX, cId int64, cType int, name string, le
 	}
 
 	ext["id"] = id
-	ext["type"] = cType
+	ext["type"] = ctx
 	ext["name"] = name
 	ext["left_value"] = leftValue
 	ext["right_value"] = rightValue

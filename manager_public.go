@@ -2,12 +2,12 @@ package nest
 
 // --------------------------------------------------------------------------------
 // AddRoot 添加顶级节点
-func (this *Manager) AddRoot(cType int, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
-	return this.addNode(0, cType, K_ADD_POSITION_ROOT, 0, name, status, ext...)
+func (this *Manager) AddRoot(ctx int, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
+	return this.addNode(0, ctx, K_ADD_POSITION_ROOT, 0, name, status, ext...)
 }
 
-func (this *Manager) AddRootWithId(cId int64, cType int, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
-	return this.addNode(cId, cType, K_ADD_POSITION_ROOT, 0, name, status, ext...)
+func (this *Manager) AddRootWithId(cId int64, ctx int, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
+	return this.addNode(cId, ctx, K_ADD_POSITION_ROOT, 0, name, status, ext...)
 }
 
 // AddToFirst 添加子节点，新添加的子节点位于子节点列表的前面
@@ -46,7 +46,7 @@ func (this *Manager) AddToRightWithId(referTo, cId int64, name string, status in
 	return this.addNode(cId, -1, K_ADD_POSITION_RIGHT, referTo, name, status, ext...)
 }
 
-func (this *Manager) AddNode(cId int64, cType, position int, referTo int64, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
+func (this *Manager) AddNode(cId int64, ctx, position int, referTo int64, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
 	if position != K_ADD_POSITION_ROOT &&
 		position != K_ADD_POSITION_FIRST &&
 		position != K_ADD_POSITION_LAST &&
@@ -54,7 +54,7 @@ func (this *Manager) AddNode(cId int64, cType, position int, referTo int64, name
 		position != K_ADD_POSITION_RIGHT {
 		return 0, ErrUnknownPosition
 	}
-	return this.addNode(cId, cType, position, referTo, name, status, ext...)
+	return this.addNode(cId, ctx, position, referTo, name, status, ext...)
 }
 
 // --------------------------------------------------------------------------------
@@ -64,8 +64,8 @@ func (this *Manager) GetNode(id int64, result interface{}) (err error) {
 	return this.getNode(id, result)
 }
 
-func (this *Manager) GetNodeWithName(cType int, name string, result interface{}) (err error) {
-	return this.getNodeWithName(cType, name, result)
+func (this *Manager) GetNodeWithName(ctx int, name string, result interface{}) (err error) {
+	return this.getNodeWithName(ctx, name, result)
 }
 
 // GetParent 获取指定节点的父节点
@@ -105,15 +105,15 @@ func (this *Manager) GetParentPathList(id int64, status int, result interface{})
 }
 
 // GetNodeList 获取节点列表
-// parentId: 父节点id，当此参数的值大于 0 的时候，将忽略 cType 参数
-// cType: 指定筛选节点的类型
+// parentId: 父节点id，当此参数的值大于 0 的时候，将忽略 ctx 参数
+// ctx: 指定筛选节点的类型
 // status: 指定筛选节点的状态
 // depth: 指定要获取多少级别内的节点
 // name: 模糊匹配 name 字段
 // limit: 返回多少条数据
 // includeParent: 如果有传递 parentId 参数，将可以通过此参数设定是否需要返回 parentId 对应的节点信息
-func (this *Manager) GetNodeList(parentId int64, cType, status, depth int, name string, limit uint64, includeParent bool, result interface{}) (err error) {
-	return this.getNodeList(parentId, cType, status, depth, name, limit, includeParent, result)
+func (this *Manager) GetNodeList(parentId int64, ctx, status, depth int, name string, limit uint64, includeParent bool, result interface{}) (err error) {
+	return this.getNodeList(parentId, ctx, status, depth, name, limit, includeParent, result)
 }
 
 // --------------------------------------------------------------------------------
