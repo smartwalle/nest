@@ -2,11 +2,11 @@ package nest
 
 // --------------------------------------------------------------------------------
 // AddRoot 添加顶级节点
-func (this *Manager) AddRoot(ctx int, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
+func (this *Manager) AddRoot(ctx int64, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
 	return this.addNode(0, ctx, K_ADD_POSITION_ROOT, 0, name, status, ext...)
 }
 
-func (this *Manager) AddRootWithId(cId int64, ctx int, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
+func (this *Manager) AddRootWithId(cId, ctx int64, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
 	return this.addNode(cId, ctx, K_ADD_POSITION_ROOT, 0, name, status, ext...)
 }
 
@@ -46,7 +46,7 @@ func (this *Manager) AddToRightWithId(referTo, cId int64, name string, status in
 	return this.addNode(cId, -1, K_ADD_POSITION_RIGHT, referTo, name, status, ext...)
 }
 
-func (this *Manager) AddNode(cId int64, ctx, position int, referTo int64, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
+func (this *Manager) AddNode(cId, ctx int64, position int, referTo int64, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
 	if position != K_ADD_POSITION_ROOT &&
 		position != K_ADD_POSITION_FIRST &&
 		position != K_ADD_POSITION_LAST &&

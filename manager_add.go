@@ -2,8 +2,8 @@ package nest
 
 import (
 	"github.com/smartwalle/dbs"
-	"time"
 	"sort"
+	"time"
 )
 
 const (
@@ -25,7 +25,7 @@ const (
 // name: 节点名
 // status: 节点状态 1000、有效；2000、无效
 // ext: 其它数据
-func (this *Manager) addNode(cId int64, ctx, position int, referTo int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
+func (this *Manager) addNode(cId, ctx int64, position int, referTo int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
 	var tx = dbs.MustTx(this.DB)
 
 	// 查询出参照节点的信息
@@ -105,9 +105,6 @@ func (this *Manager) insertNodeToFirst(tx dbs.TX, refer *Node, cId int64, name s
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.LeftValue)
-	//if _, err = tx.ExecUpdateBuilder(ubLeft); err != nil {
-	//	return 0, err
-	//}
 	if _, err = ubLeft.ExecTx(tx); err != nil {
 		return 0, err
 	}
@@ -117,9 +114,6 @@ func (this *Manager) insertNodeToFirst(tx dbs.TX, refer *Node, cId int64, name s
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value > ?", refer.Ctx, refer.LeftValue)
-	//if _, err = tx.ExecUpdateBuilder(ubRight); err != nil {
-	//	return 0, err
-	//}
 	if _, err = ubRight.ExecTx(tx); err != nil {
 		return 0, err
 	}
@@ -136,9 +130,6 @@ func (this *Manager) insertNodeToLast(tx dbs.TX, refer *Node, cId int64, name st
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.RightValue)
-	//if _, err = tx.ExecUpdateBuilder(ubLeft); err != nil {
-	//	return 0, err
-	//}
 	if _, err = ubLeft.ExecTx(tx); err != nil {
 		return 0, err
 	}
@@ -148,9 +139,6 @@ func (this *Manager) insertNodeToLast(tx dbs.TX, refer *Node, cId int64, name st
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value >= ?", refer.Ctx, refer.RightValue)
-	//if _, err = tx.ExecUpdateBuilder(ubRight); err != nil {
-	//	return 0, err
-	//}
 	if _, err = ubRight.ExecTx(tx); err != nil {
 		return 0, err
 	}
@@ -168,9 +156,6 @@ func (this *Manager) insertNodeToLeft(tx dbs.TX, refer *Node, cId int64, name st
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value >= ?", refer.Ctx, refer.LeftValue)
-	//if _, err = tx.ExecUpdateBuilder(ubLeft); err != nil {
-	//	return 0, err
-	//}
 	if _, err = ubLeft.ExecTx(tx); err != nil {
 		return 0, err
 	}
@@ -180,9 +165,6 @@ func (this *Manager) insertNodeToLeft(tx dbs.TX, refer *Node, cId int64, name st
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value >= ?", refer.Ctx, refer.LeftValue)
-	//if _, err = tx.ExecUpdateBuilder(ubRight); err != nil {
-	//	return 0, err
-	//}
 	if _, err = ubRight.ExecTx(tx); err != nil {
 		return 0, err
 	}
@@ -199,9 +181,6 @@ func (this *Manager) insertNodeToRight(tx dbs.TX, refer *Node, cId int64, name s
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.RightValue)
-	//if _, err = tx.ExecUpdateBuilder(ubLeft); err != nil {
-	//	return 0, err
-	//}
 	if _, err = ubLeft.ExecTx(tx); err != nil {
 		return 0, err
 	}
@@ -211,9 +190,6 @@ func (this *Manager) insertNodeToRight(tx dbs.TX, refer *Node, cId int64, name s
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value > ?", refer.Ctx, refer.RightValue)
-	//if _, err = tx.ExecUpdateBuilder(ubRight); err != nil {
-	//	return 0, err
-	//}
 	if _, err = ubRight.ExecTx(tx); err != nil {
 		return 0, err
 	}
@@ -224,7 +200,7 @@ func (this *Manager) insertNodeToRight(tx dbs.TX, refer *Node, cId int64, name s
 	return id, nil
 }
 
-func (this *Manager) insertNode(tx dbs.TX, cId int64, ctx int, name string, leftValue, rightValue, depth, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertNode(tx dbs.TX, cId, ctx int64, name string, leftValue, rightValue, depth, status int, ext map[string]interface{}) (id int64, err error) {
 	var now = time.Now()
 	var ib = dbs.NewInsertBuilder()
 	ib.Table(this.Table)
@@ -243,7 +219,7 @@ func (this *Manager) insertNode(tx dbs.TX, cId int64, ctx int, name string, left
 	ext["created_on"] = now
 	ext["updated_on"] = now
 
-	var keys = make([]string, 0, len(ext) + 9)
+	var keys = make([]string, 0, len(ext)+9)
 	for key := range ext {
 		keys = append(keys, key)
 	}
@@ -252,11 +228,6 @@ func (this *Manager) insertNode(tx dbs.TX, cId int64, ctx int, name string, left
 		ib.SET(key, ext[key])
 	}
 
-	//if result, err := tx.ExecInsertBuilder(ib); err != nil {
-	//	return 0, err
-	//} else {
-	//	id, _ = result.LastInsertId()
-	//}
 	if result, err := ib.ExecTx(tx); err != nil {
 		return 0, err
 	} else {

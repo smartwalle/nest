@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/smartwalle/dbs"
 	"github.com/smartwalle/nest"
-	"fmt"
 )
 
 func main() {

@@ -2,8 +2,8 @@ package nest
 
 import (
 	"github.com/smartwalle/dbs"
-	"time"
 	"sort"
+	"time"
 )
 
 const (
@@ -32,7 +32,7 @@ func (this *Manager) updateNode(id int64, updateInfo map[string]interface{}) (er
 
 	updateInfo["updated_on"] = time.Now()
 
-	var keys = make([]string, 0, len(updateInfo) + 1)
+	var keys = make([]string, 0, len(updateInfo)+1)
 	for key := range updateInfo {
 		keys = append(keys, key)
 	}
@@ -85,9 +85,6 @@ func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err err
 			ub.SET("updated_on", now)
 			ub.Where("id = ?", id)
 			ub.Limit(1)
-			//if _, err := tx.ExecUpdateBuilder(ub); err != nil {
-			//	return err
-			//}
 			if _, err := ub.ExecTx(tx); err != nil {
 				return err
 			}
@@ -99,9 +96,6 @@ func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err err
 			ubChild.SET("depth", dbs.SQL("depth-1"))
 			ubChild.SET("updated_on", now)
 			ubChild.Where("ctx = ? AND left_value > ? AND right_value < ?", node.Ctx, node.LeftValue, node.RightValue)
-			//if _, err := tx.ExecUpdateBuilder(ubChild); err != nil {
-			//	return err
-			//}
 			if _, err := ubChild.ExecTx(tx); err != nil {
 				return err
 			}
@@ -112,9 +106,6 @@ func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err err
 		ub.SET("status", status)
 		ub.SET("updated_on", now)
 		ub.Where("ctx = ? AND left_value >= ? AND right_value <= ?", node.Ctx, node.LeftValue, node.RightValue)
-		//if _, err := tx.ExecUpdateBuilder(ub); err != nil {
-		//	return err
-		//}
 		if _, err := ub.ExecTx(tx); err != nil {
 			return err
 		}
@@ -125,9 +116,6 @@ func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err err
 		ub.SET("updated_on", now)
 		ub.Where("id = ?", id)
 		ub.Limit(1)
-		//if _, err := tx.ExecUpdateBuilder(ub); err != nil {
-		//	return err
-		//}
 		if _, err := ub.ExecTx(tx); err != nil {
 			return err
 		}
@@ -229,9 +217,6 @@ func (this *Manager) moveNodeWithPosition(tx dbs.TX, position int, node, refer *
 	ubTreeLeft.SET("left_value", dbs.SQL("left_value - ?", nodeLen))
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("ctx = ? AND left_value > ?", node.Ctx, node.RightValue)
-	//if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
-	//	return err
-	//}
 	if _, err = ubTreeLeft.ExecTx(tx); err != nil {
 		return err
 	}
@@ -240,9 +225,6 @@ func (this *Manager) moveNodeWithPosition(tx dbs.TX, position int, node, refer *
 	ubTreeRight.SET("right_value", dbs.SQL("right_value - ?", nodeLen))
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("ctx = ? AND right_value > ?", node.Ctx, node.RightValue)
-	//if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
-	//	return err
-	//}
 	if _, err = ubTreeRight.ExecTx(tx); err != nil {
 		return err
 	}
@@ -280,9 +262,6 @@ func (this *Manager) moveToFirst(tx dbs.TX, node, parent *Node, updateIdList []i
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("ctx = ? AND left_value > ?", parent.Ctx, parent.LeftValue)
 	ubTreeLeft.Where(dbs.NotIn("id", updateIdList))
-	//if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
-	//	return err
-	//}
 	if _, err = ubTreeLeft.ExecTx(tx); err != nil {
 		return err
 	}
@@ -293,9 +272,6 @@ func (this *Manager) moveToFirst(tx dbs.TX, node, parent *Node, updateIdList []i
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("ctx = ? AND right_value > ?", parent.Ctx, parent.LeftValue)
 	ubTreeRight.Where(dbs.NotIn("id", updateIdList))
-	//if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
-	//	return err
-	//}
 	if _, err = ubTreeRight.ExecTx(tx); err != nil {
 		return err
 	}
@@ -312,9 +288,6 @@ func (this *Manager) moveToFirst(tx dbs.TX, node, parent *Node, updateIdList []i
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
 	ubTree.SET("updated_on", now)
 	ubTree.Where(dbs.IN("id", updateIdList))
-	//if _, err = tx.ExecUpdateBuilder(ubTree); err != nil {
-	//	return err
-	//}
 	if _, err = ubTree.ExecTx(tx); err != nil {
 		return err
 	}
@@ -332,9 +305,6 @@ func (this *Manager) moveToLast(tx dbs.TX, node, parent *Node, updateIdList []in
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("ctx = ? AND left_value > ?", parent.Ctx, parent.RightValue)
 	ubTreeLeft.Where(dbs.NotIn("id", updateIdList))
-	//if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
-	//	return err
-	//}
 	if _, err = ubTreeLeft.ExecTx(tx); err != nil {
 		return err
 	}
@@ -345,9 +315,6 @@ func (this *Manager) moveToLast(tx dbs.TX, node, parent *Node, updateIdList []in
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("ctx = ? AND right_value >= ?", parent.Ctx, parent.RightValue)
 	ubTreeRight.Where(dbs.NotIn("id", updateIdList))
-	//if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
-	//	return err
-	//}
 	if _, err = ubTreeRight.ExecTx(tx); err != nil {
 		return err
 	}
@@ -364,9 +331,6 @@ func (this *Manager) moveToLast(tx dbs.TX, node, parent *Node, updateIdList []in
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
 	ubTree.SET("updated_on", now)
 	ubTree.Where(dbs.IN("id", updateIdList))
-	//if _, err = tx.ExecUpdateBuilder(ubTree); err != nil {
-	//	return err
-	//}
 	if _, err = ubTree.ExecTx(tx); err != nil {
 		return err
 	}
@@ -384,9 +348,6 @@ func (this *Manager) moveToLeft(tx dbs.TX, node, refer *Node, updateIdList []int
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("ctx = ? AND left_value >= ?", refer.Ctx, refer.LeftValue)
 	ubTreeLeft.Where(dbs.NotIn("id", updateIdList))
-	//if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
-	//	return err
-	//}
 	if _, err = ubTreeLeft.ExecTx(tx); err != nil {
 		return err
 	}
@@ -397,9 +358,6 @@ func (this *Manager) moveToLeft(tx dbs.TX, node, refer *Node, updateIdList []int
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("ctx = ? AND right_value >= ?", refer.Ctx, refer.LeftValue)
 	ubTreeRight.Where(dbs.NotIn("id", updateIdList))
-	//if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
-	//	return err
-	//}
 	if _, err = ubTreeRight.ExecTx(tx); err != nil {
 		return err
 	}
@@ -416,9 +374,6 @@ func (this *Manager) moveToLeft(tx dbs.TX, node, refer *Node, updateIdList []int
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
 	ubTree.SET("updated_on", now)
 	ubTree.Where(dbs.IN("id", updateIdList))
-	//if _, err = tx.ExecUpdateBuilder(ubTree); err != nil {
-	//	return err
-	//}
 	if _, err = ubTree.ExecTx(tx); err != nil {
 		return err
 	}
@@ -436,9 +391,6 @@ func (this *Manager) moveToRight(tx dbs.TX, node, refer *Node, updateIdList []in
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.RightValue)
 	ubTreeLeft.Where(dbs.NotIn("id", updateIdList))
-	//if _, err = tx.ExecUpdateBuilder(ubTreeLeft); err != nil {
-	//	return err
-	//}
 	if _, err = ubTreeLeft.ExecTx(tx); err != nil {
 		return err
 	}
@@ -449,9 +401,6 @@ func (this *Manager) moveToRight(tx dbs.TX, node, refer *Node, updateIdList []in
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("ctx = ? AND right_value > ?", refer.Ctx, refer.RightValue)
 	ubTreeRight.Where(dbs.NotIn("id", updateIdList))
-	//if _, err = tx.ExecUpdateBuilder(ubTreeRight); err != nil {
-	//	return err
-	//}
 	if _, err = ubTreeRight.ExecTx(tx); err != nil {
 		return err
 	}
@@ -466,9 +415,6 @@ func (this *Manager) moveToRight(tx dbs.TX, node, refer *Node, updateIdList []in
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
 	ubTree.SET("updated_on", now)
 	ubTree.Where(dbs.IN("id", updateIdList))
-	//if _, err = tx.ExecUpdateBuilder(ubTree); err != nil {
-	//	return err
-	//}
 	if _, err = ubTree.ExecTx(tx); err != nil {
 		return err
 	}
