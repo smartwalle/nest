@@ -209,7 +209,7 @@ func (this *Manager) insertNode(tx dbs.TX, cId, ctx int64, name string, leftValu
 		ext = make(map[string]interface{})
 	}
 
-	ext["id"] = id
+	ext["id"] = cId
 	ext["ctx"] = ctx
 	ext["name"] = name
 	ext["left_value"] = leftValue
@@ -219,7 +219,7 @@ func (this *Manager) insertNode(tx dbs.TX, cId, ctx int64, name string, leftValu
 	ext["created_on"] = now
 	ext["updated_on"] = now
 
-	var keys = make([]string, 0, len(ext)+9)
+	var keys = make([]string, 0, len(ext))
 	for key := range ext {
 		keys = append(keys, key)
 	}

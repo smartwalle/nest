@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	var db, _ = dbs.NewSQL("mysql", "root:yangfeng@tcp(192.168.1.111:3306)/v3?parseTime=true", 2, 2)
+	var db, _ = dbs.NewSQL("mysql", "root:yangfeng@tcp(192.168.1.99:3306)/test?parseTime=true", 2, 2)
 	var m = nest.NewManager(db, "org_department")
 
 	var nodeList []*nest.Node
