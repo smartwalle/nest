@@ -15,17 +15,18 @@ const (
 )
 
 // addNode 添加节点
-// ctx: 节点类型（节点组）
+// cId: 指定节点的 id，如果值小于等于0，则表示自增；
+// ctx: 节点组标识；
 // position:
 // 		1、将新的节点添加到参照节点的子节点列表头部；
 // 		2、将新的节点添加到参照节点的子节点列表尾部；
 // 		3、将新的节点添加到参照节点的左边；
 // 		4、将新的节点添加到参照节点的右边；
-// referTo: 参照节点 id，如果值等于 0，则表示添加顶级节点
+// referTo: 参照节点 id，如果值等于 0，则表示添加顶级节点；
 // name: 节点名
-// status: 节点状态 1000、有效；2000、无效
-// ext: 其它数据
-func (this *Manager) addNode(cId, ctx int64, position int, referTo int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
+// status: 节点状态 1000、有效；2000、无效；
+// ext: 其它数据；
+func (this *Manager) addNode(id, ctx int64, position int, rid int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
 	var tx = dbs.MustTx(this.DB)
 
 	// 查询出参照节点的信息
@@ -47,7 +48,7 @@ func (this *Manager) addNode(cId, ctx int64, position int, referTo int64, name s
 			referNode.Depth = 1
 		}
 	} else {
-		if referNode, err = this._getNodeWithId(tx, referTo); err != nil {
+		if referNode, err = this._getNodeWithId(tx, rid); err != nil {
 			return 0, err
 		}
 		if referNode == nil {
@@ -61,7 +62,7 @@ func (this *Manager) addNode(cId, ctx int64, position int, referTo int64, name s
 		ext = exts[0]
 	}
 
-	if result, err = this.addNodeWithPosition(tx, referNode, cId, position, name, status, ext); err != nil {
+	if result, err = this.addNodeWithPosition(tx, referNode, id, position, name, status, ext); err != nil {
 		return 0, err
 	}
 
@@ -71,35 +72,35 @@ func (this *Manager) addNode(cId, ctx int64, position int, referTo int64, name s
 	return result, nil
 }
 
-func (this *Manager) addNodeWithPosition(tx dbs.TX, refer *Node, cId int64, position int, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) addNodeWithPosition(tx dbs.TX, refer *Node, id int64, position int, name string, status int, ext map[string]interface{}) (result int64, err error) {
 	switch position {
 	case K_ADD_POSITION_ROOT:
-		return this.insertNodeToRoot(tx, refer, cId, name, status, ext)
+		return this.insertNodeToRoot(tx, refer, id, name, status, ext)
 	case K_ADD_POSITION_FIRST:
-		return this.insertNodeToFirst(tx, refer, cId, name, status, ext)
+		return this.insertNodeToFirst(tx, refer, id, name, status, ext)
 	case K_ADD_POSITION_LAST:
-		return this.insertNodeToLast(tx, refer, cId, name, status, ext)
+		return this.insertNodeToLast(tx, refer, id, name, status, ext)
 	case K_ADD_POSITION_LEFT:
-		return this.insertNodeToLeft(tx, refer, cId, name, status, ext)
+		return this.insertNodeToLeft(tx, refer, id, name, status, ext)
 	case K_ADD_POSITION_RIGHT:
-		return this.insertNodeToRight(tx, refer, cId, name, status, ext)
+		return this.insertNodeToRight(tx, refer, id, name, status, ext)
 	}
 	tx.Rollback()
 	return 0, ErrUnknownPosition
 }
 
-func (this *Manager) insertNodeToRoot(tx dbs.TX, refer *Node, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertNodeToRoot(tx dbs.TX, refer *Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
 	var ctx = refer.Ctx
 	var leftValue = refer.RightValue + 1
 	var rightValue = refer.RightValue + 2
 	var depth = refer.Depth
-	if id, err = this.insertNode(tx, cId, ctx, name, leftValue, rightValue, depth, status, ext); err != nil {
+	if result, err = this.insertNode(tx, id, ctx, name, leftValue, rightValue, depth, status, ext); err != nil {
 		return 0, err
 	}
-	return id, nil
+	return result, nil
 }
 
-func (this *Manager) insertNodeToFirst(tx dbs.TX, refer *Node, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertNodeToFirst(tx dbs.TX, refer *Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
@@ -118,13 +119,13 @@ func (this *Manager) insertNodeToFirst(tx dbs.TX, refer *Node, cId int64, name s
 		return 0, err
 	}
 
-	if id, err = this.insertNode(tx, cId, refer.Ctx, name, refer.LeftValue+1, refer.LeftValue+2, refer.Depth+1, status, ext); err != nil {
+	if result, err = this.insertNode(tx, id, refer.Ctx, name, refer.LeftValue+1, refer.LeftValue+2, refer.Depth+1, status, ext); err != nil {
 		return 0, err
 	}
-	return id, nil
+	return result, nil
 }
 
-func (this *Manager) insertNodeToLast(tx dbs.TX, refer *Node, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertNodeToLast(tx dbs.TX, refer *Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
@@ -143,14 +144,14 @@ func (this *Manager) insertNodeToLast(tx dbs.TX, refer *Node, cId int64, name st
 		return 0, err
 	}
 
-	if id, err = this.insertNode(tx, cId, refer.Ctx, name, refer.RightValue, refer.RightValue+1, refer.Depth+1, status, ext); err != nil {
+	if result, err = this.insertNode(tx, id, refer.Ctx, name, refer.RightValue, refer.RightValue+1, refer.Depth+1, status, ext); err != nil {
 		return 0, err
 	}
 
-	return id, nil
+	return result, nil
 }
 
-func (this *Manager) insertNodeToLeft(tx dbs.TX, refer *Node, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertNodeToLeft(tx dbs.TX, refer *Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
@@ -169,13 +170,13 @@ func (this *Manager) insertNodeToLeft(tx dbs.TX, refer *Node, cId int64, name st
 		return 0, err
 	}
 
-	if id, err = this.insertNode(tx, cId, refer.Ctx, name, refer.LeftValue, refer.LeftValue+1, refer.Depth, status, ext); err != nil {
+	if result, err = this.insertNode(tx, id, refer.Ctx, name, refer.LeftValue, refer.LeftValue+1, refer.Depth, status, ext); err != nil {
 		return 0, err
 	}
-	return id, nil
+	return result, nil
 }
 
-func (this *Manager) insertNodeToRight(tx dbs.TX, refer *Node, cId int64, name string, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertNodeToRight(tx dbs.TX, refer *Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
 	ubLeft.Table(this.Table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
@@ -194,13 +195,13 @@ func (this *Manager) insertNodeToRight(tx dbs.TX, refer *Node, cId int64, name s
 		return 0, err
 	}
 
-	if id, err = this.insertNode(tx, cId, refer.Ctx, name, refer.RightValue+1, refer.RightValue+2, refer.Depth, status, ext); err != nil {
+	if result, err = this.insertNode(tx, id, refer.Ctx, name, refer.RightValue+1, refer.RightValue+2, refer.Depth, status, ext); err != nil {
 		return 0, err
 	}
-	return id, nil
+	return result, nil
 }
 
-func (this *Manager) insertNode(tx dbs.TX, cId, ctx int64, name string, leftValue, rightValue, depth, status int, ext map[string]interface{}) (id int64, err error) {
+func (this *Manager) insertNode(tx dbs.TX, id, ctx int64, name string, leftValue, rightValue, depth, status int, ext map[string]interface{}) (result int64, err error) {
 	var now = time.Now()
 	var ib = dbs.NewInsertBuilder()
 	ib.Table(this.Table)
@@ -209,7 +210,7 @@ func (this *Manager) insertNode(tx dbs.TX, cId, ctx int64, name string, leftValu
 		ext = make(map[string]interface{})
 	}
 
-	ext["id"] = cId
+	ext["id"] = id
 	ext["ctx"] = ctx
 	ext["name"] = name
 	ext["left_value"] = leftValue
@@ -228,10 +229,10 @@ func (this *Manager) insertNode(tx dbs.TX, cId, ctx int64, name string, leftValu
 		ib.SET(key, ext[key])
 	}
 
-	if result, err := ib.ExecTx(tx); err != nil {
+	if sResult, err := ib.ExecTx(tx); err != nil {
 		return 0, err
 	} else {
-		id, _ = result.LastInsertId()
+		result, _ = sResult.LastInsertId()
 	}
-	return id, err
+	return result, err
 }

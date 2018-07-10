@@ -12,7 +12,7 @@ func main() {
 	var m = nest.NewManager(db, "org_department")
 
 	var nodeList []*nest.Node
-	m.GetSubNodeList(0, 0, 1, &nodeList)
+	m.GetSubNodeList(-1, 0, 0, 2, &nodeList)
 
 	for _, node := range nodeList {
 		fmt.Println(node.Ctx, node.Id, node.IsLeaf(), node.Name, node.LeftValue, node.RightValue)

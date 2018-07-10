@@ -20,9 +20,7 @@ func (this *Manager) _getNodeWithMaxRightValue(tx dbs.TX, ctx int64) (result *No
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id", "c.ctx", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
 	sb.From(this.Table, "AS c")
-	if ctx > 0 {
-		sb.Where("c.ctx = ?", ctx)
-	}
+	sb.Where("c.ctx = ?", ctx)
 	sb.OrderBy("c.right_value DESC")
 	sb.Limit(1)
 	if err = sb.ScanTx(tx, &result); err != nil {
@@ -68,27 +66,24 @@ func (this *Manager) getNodeWithName(ctx int, name string, result interface{}) (
 	return nil
 }
 
-func (this *Manager) getNodeList(parentId int64, ctx, status, depth int, name string, limit uint64, includeParent bool, result interface{}) (err error) {
+func (this *Manager) getNodeList(pid, ctx int64, status, depth int, name string, limit uint64, includeParent bool, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
 	sb.From(this.Table, "AS c")
-	if parentId > 0 {
+	if pid > 0 {
 		if includeParent {
 			sb.LeftJoin(this.Table, "AS pc ON pc.ctx = c.ctx AND pc.left_value <= c.left_value AND pc.right_value >= c.right_value")
 		} else {
 			sb.LeftJoin(this.Table, "AS pc ON pc.ctx = c.ctx AND pc.left_value < c.left_value AND pc.right_value > c.right_value")
 		}
-		sb.Where("pc.id = ?", parentId)
-	} else {
-		if ctx > 0 {
-			sb.Where("c.ctx = ?", ctx)
-		}
+		sb.Where("pc.id = ?", pid)
 	}
+	sb.Where("c.ctx = ?", ctx)
 	if status > 0 {
 		sb.Where("c.status = ?", status)
 	}
 	if depth > 0 {
-		if parentId > 0 {
+		if pid > 0 {
 			sb.Where("c.depth - pc.depth <= ?", depth)
 		} else {
 			sb.Where("c.depth <= ?", depth)
@@ -109,23 +104,24 @@ func (this *Manager) getNodeList(parentId int64, ctx, status, depth int, name st
 	return nil
 }
 
-func (this *Manager) getIdList(parentId int64, status, depth int, includeParent bool) (result []int64, err error) {
+func (this *Manager) getIdList(pid, ctx int64, status, depth int, includeParent bool) (result []int64, err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id")
 	sb.From(this.Table, "AS c")
-	if parentId > 0 {
+	if pid > 0 {
 		if includeParent {
 			sb.LeftJoin(this.Table, "AS pc ON pc.ctx = c.ctx AND pc.left_value <= c.left_value AND pc.right_value >= c.right_value")
 		} else {
 			sb.LeftJoin(this.Table, "AS pc ON pc.ctx = c.ctx AND pc.left_value < c.left_value AND pc.right_value > c.right_value")
 		}
-		sb.Where("pc.id = ?", parentId)
+		sb.Where("pc.id = ?", pid)
 	}
+	sb.Where("c.ctx = ?", ctx)
 	if status > 0 {
 		sb.Where("c.status = ?", status)
 	}
 	if depth > 0 {
-		if parentId > 0 {
+		if pid > 0 {
 			sb.Where("c.depth - pc.depth <= ?", depth)
 		} else {
 			sb.Where("c.depth <= ?", depth)
@@ -144,7 +140,7 @@ func (this *Manager) getIdList(parentId int64, status, depth int, includeParent 
 	return result, nil
 }
 
-func (this *Manager) getPathList(id int64, status int, includeLastNode bool, result interface{}) (err error) {
+func (this *Manager) getPathList(id, ctx int64, status int, includeLastNode bool, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
 	sb.From(this.Table, "AS sc")
@@ -154,6 +150,7 @@ func (this *Manager) getPathList(id int64, status int, includeLastNode bool, res
 		sb.LeftJoin(this.Table, "AS c ON c.ctx = sc.ctx AND c.left_value < sc.left_value AND c.right_value > sc.right_value")
 	}
 	sb.Where("sc.id = ?", id)
+	sb.Where("sc.ctx = ?", ctx)
 	if status > 0 {
 		sb.Where("c.status = ?", status)
 	}
@@ -164,17 +161,19 @@ func (this *Manager) getPathList(id int64, status int, includeLastNode bool, res
 	return nil
 }
 
-func (this *Manager) getParent(id int64, status int, result interface{}) (err error) {
+func (this *Manager) getParent(id, ctx int64, status int, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
 	sb.From(this.Table, "AS sc")
 	sb.LeftJoin(this.Table, "AS c ON c.ctx = sc.ctx AND c.left_value < sc.left_value AND c.right_value > sc.right_value")
 	sb.Where("sc.id = ?", id)
+	sb.Where("c.ctx = ?", ctx)
 	if status > 0 {
 		sb.Where("c.status = ?", status)
 	}
 	sb.Limit(1)
 	sb.OrderBy("c.left_value DESC")
+
 	if err = sb.Scan(this.DB, result); err != nil {
 		return err
 	}
