@@ -11,7 +11,7 @@ func main() {
 	var db, _ = dbs.NewSQL("mysql", "root:yangfeng@tcp(192.168.1.99:3306)/test?parseTime=true", 2, 2)
 	var m = nest.NewManager(db, "org_department")
 
-	//m.AddRootWithId(1, 1001, "新闻分类", nest.K_STATUS_ENABLE)
+	//m.AddRootWithId(1001, 1, "新闻分类", nest.K_STATUS_ENABLE)
 	//m.AddToLastWithId(2, 1, "体育", nest.K_STATUS_ENABLE)
 	//m.AddToLastWithId(3, 1, "娱乐", nest.K_STATUS_ENABLE)
 	//m.AddToLastWithId(4, 1, "亲子", nest.K_STATUS_ENABLE)
@@ -23,7 +23,7 @@ func main() {
 	//m.AddToLastWithId(10, 2, "篮球", nest.K_STATUS_ENABLE)
 	//m.AddToLastWithId(11, 2, "田径", nest.K_STATUS_ENABLE)
 	//
-	//m.AddRootWithId(12, 1002, "商品分类", nest.K_STATUS_ENABLE)
+	//m.AddRootWithId(1002, 12, "商品分类", nest.K_STATUS_ENABLE)
 	//m.AddToLastWithId(13, 12, "图书", nest.K_STATUS_ENABLE)
 	//m.AddToLastWithId(14, 12, "家电", nest.K_STATUS_ENABLE)
 	//m.AddToLastWithId(15, 12, "家具", nest.K_STATUS_ENABLE)
@@ -35,7 +35,7 @@ func main() {
 
 
 	var nodeList []*nest.Node
-	m.GetSubNodeList(1001, 2, 0, 0, &nodeList)
+	m.GetNodeList(1001, 0, 1000, 1, "", 0, 0, false, &nodeList)
 
 	for _, node := range nodeList {
 		fmt.Println(node.Ctx, node.Id, node.IsLeaf(), node.Name, node.LeftValue, node.RightValue)

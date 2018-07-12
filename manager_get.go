@@ -66,7 +66,7 @@ func (this *Manager) getNodeWithName(ctx int, name string, result interface{}) (
 	return nil
 }
 
-func (this *Manager) getNodeList(pid, ctx int64, status, depth int, name string, limit uint64, includeParent bool, result interface{}) (err error) {
+func (this *Manager) getNodeList(ctx, pid int64, status, depth int, name string, limit, offset uint64, includeParent bool, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
 	sb.From(this.Table, "AS c")
@@ -97,6 +97,9 @@ func (this *Manager) getNodeList(pid, ctx int64, status, depth int, name string,
 	if limit > 0 {
 		sb.Limit(limit)
 	}
+	if offset > 0 {
+		sb.Offset(offset)
+	}
 
 	if err = sb.Scan(this.DB, result); err != nil {
 		return err
@@ -104,7 +107,7 @@ func (this *Manager) getNodeList(pid, ctx int64, status, depth int, name string,
 	return nil
 }
 
-func (this *Manager) getIdList(pid, ctx int64, status, depth int, includeParent bool) (result []int64, err error) {
+func (this *Manager) getIdList(ctx, pid int64, status, depth int, includeParent bool) (result []int64, err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id")
 	sb.From(this.Table, "AS c")
@@ -140,7 +143,7 @@ func (this *Manager) getIdList(pid, ctx int64, status, depth int, includeParent 
 	return result, nil
 }
 
-func (this *Manager) getPathList(id, ctx int64, status int, includeLastNode bool, result interface{}) (err error) {
+func (this *Manager) getPathList(ctx, id int64, status int, includeLastNode bool, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
 	sb.From(this.Table, "AS sc")
@@ -161,7 +164,7 @@ func (this *Manager) getPathList(id, ctx int64, status int, includeLastNode bool
 	return nil
 }
 
-func (this *Manager) getParent(id, ctx int64, status int, result interface{}) (err error) {
+func (this *Manager) getParent(ctx, id int64, status int, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
 	sb.From(this.Table, "AS sc")

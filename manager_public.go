@@ -6,7 +6,7 @@ func (this *Manager) AddRoot(ctx int64, name string, status int, ext ...map[stri
 	return this.addNode(0, ctx, K_ADD_POSITION_ROOT, 0, name, status, ext...)
 }
 
-func (this *Manager) AddRootWithId(id, ctx int64, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
+func (this *Manager) AddRootWithId(ctx, id int64, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
 	return this.addNode(id, ctx, K_ADD_POSITION_ROOT, 0, name, status, ext...)
 }
 
@@ -46,7 +46,7 @@ func (this *Manager) AddToRightWithId(id, rid int64, name string, status int, ex
 	return this.addNode(id, -1, K_ADD_POSITION_RIGHT, rid, name, status, ext...)
 }
 
-func (this *Manager) AddNode(id, ctx int64, position int, rid int64, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
+func (this *Manager) AddNode(ctx, id int64, position int, rid int64, name string, status int, ext ...map[string]interface{}) (result int64, err error) {
 	if position != K_ADD_POSITION_ROOT &&
 		position != K_ADD_POSITION_FIRST &&
 		position != K_ADD_POSITION_LAST &&
@@ -71,49 +71,49 @@ func (this *Manager) GetNodeWithName(ctx int, name string, result interface{}) (
 // GetParent 获取指定节点的父节点
 // id: 节点 id
 func (this *Manager) GetParent(ctx, id int64, result interface{}) (err error) {
-	return this.getParent(id, ctx, 0, result)
+	return this.getParent(ctx, id, 0, result)
 }
 
 // GetSubNodeList 获取指定节点的子节点
 func (this *Manager) GetSubNodeList(ctx, id int64, status, depth int, result interface{}) (err error) {
-	return this.getNodeList(id, ctx, status, depth, "", 0, false, result)
+	return this.getNodeList(ctx, id, status, depth, "", 0, 0, false, result)
 }
 
 // GetSubNodeIdList 获取指定节点的子节点 id 列表
 func (this *Manager) GetSubNodeIdList(ctx, id int64, status, depth int) (result []int64, err error) {
-	return this.getIdList(id, ctx, status, depth, false)
+	return this.getIdList(ctx, id, status, depth, false)
 }
 
 // GetSubNodePathList 获取指定节点的子节点，返回的节点列表包括 id 对应的节点
 func (this *Manager) GetSubNodePathList(ctx, id int64, status, depth int, result interface{}) (err error) {
-	return this.getNodeList(id, ctx, status, depth, "", 0, true, result)
+	return this.getNodeList(ctx, id, status, depth, "", 0, 0, true, result)
 }
 
 // GetSubNodePathIdList 获取指定节点的子节点 id 列表，返回的 id 列表包含 id
 func (this *Manager) GetSubNodePathIdList(ctx, id int64, status, depth int) (result []int64, err error) {
-	return this.getIdList(id, ctx, status, depth, true)
+	return this.getIdList(ctx, id, status, depth, true)
 }
 
 // GetParentList 获取指定节点到 root 节点的完整节点列表
 func (this *Manager) GetParentList(ctx, id int64, status int, result interface{}) (err error) {
-	return this.getPathList(id, ctx, status, false, result)
+	return this.getPathList(ctx, id, status, false, result)
 }
 
 // GetParentPathList 获取指定节点到 root 节点的完整节点列表，返回的节点列表包括 id 对应的节点
 func (this *Manager) GetParentPathList(ctx, id int64, status int, result interface{}) (err error) {
-	return this.getPathList(id, ctx, status, true, result)
+	return this.getPathList(ctx, id, status, true, result)
 }
 
 // GetNodeList 获取节点列表
-// pid: 父节点id，当此参数的值大于 0 的时候，将忽略 ctx 参数
 // ctx: 指定筛选节点的类型
+// pid: 父节点id，当此参数的值大于 0 的时候，将忽略 ctx 参数
 // status: 指定筛选节点的状态
 // depth: 指定要获取多少级别内的节点
 // name: 模糊匹配 name 字段
 // limit: 返回多少条数据
 // includeParent: 如果有传递 parentId 参数，将可以通过此参数设定是否需要返回 parentId 对应的节点信息
-func (this *Manager) GetNodeList(pid, ctx int64, status, depth int, name string, limit uint64, includeParent bool, result interface{}) (err error) {
-	return this.getNodeList(pid, ctx, status, depth, name, limit, includeParent, result)
+func (this *Manager) GetNodeList(ctx, pid int64, status, depth int, name string, limit, offset uint64, includeParent bool, result interface{}) (err error) {
+	return this.getNodeList(ctx, pid, status, depth, name, limit, offset, includeParent, result)
 }
 
 // --------------------------------------------------------------------------------

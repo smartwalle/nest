@@ -186,7 +186,7 @@ func (this *Manager) moveNode(position int, id, rid int64) (err error) {
 	// 查询出被移动节点的所有子节点
 	//children, err := this.getNodeList(node.Id, 0, 0)
 	var children []*Node
-	if err = this.getNodeList(node.Id, 0, 0, 0, "", 0, true, &children); err != nil {
+	if err = this.getNodeList(node.Ctx, node.Id, 0, 0, "", 0, 0, true, &children); err != nil {
 		return err
 	}
 
