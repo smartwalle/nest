@@ -60,8 +60,8 @@ func (this *Manager) AddNode(ctx, id int64, position int, rid int64, name string
 // --------------------------------------------------------------------------------
 // GetNode 获取节点信息
 // id: 节点 id
-func (this *Manager) GetNode(id int64, result interface{}) (err error) {
-	return this.getNode(id, result)
+func (this *Manager) GetNode(ctx, id int64, result interface{}) (err error) {
+	return this.getNode(ctx, id, result)
 }
 
 func (this *Manager) GetNodeWithName(ctx int, name string, result interface{}) (err error) {

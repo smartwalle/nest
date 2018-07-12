@@ -29,10 +29,10 @@ func (this *Manager) _getNodeWithMaxRightValue(tx dbs.TX, ctx int64) (result *No
 	return result, nil
 }
 
-func (this *Manager) getNode(id int64, result interface{}) (err error) {
+func (this *Manager) getNode(ctx, id int64, result interface{}) (err error) {
 	var tx = dbs.MustTx(this.DB)
 
-	if err = this.getNodeWithId(tx, id, result); err != nil {
+	if err = this.getNodeWithId(tx, ctx, id, result); err != nil {
 		return err
 	}
 
@@ -42,11 +42,12 @@ func (this *Manager) getNode(id int64, result interface{}) (err error) {
 	return nil
 }
 
-func (this *Manager) getNodeWithId(tx dbs.TX, id int64, result interface{}) (err error) {
+func (this *Manager) getNodeWithId(tx dbs.TX, ctx, id int64, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
 	sb.From(this.Table, "AS c")
 	sb.Where("c.id = ?", id)
+	sb.Where("c.ctx = ?", ctx)
 	sb.Limit(1)
 	if err = sb.ScanTx(tx, result); err != nil {
 		return err
