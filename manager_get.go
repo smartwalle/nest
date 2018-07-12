@@ -29,6 +29,47 @@ func (this *Manager) _getNodeWithMaxRightValue(tx dbs.TX, ctx int64) (result *No
 	return result, nil
 }
 
+func (this *Manager) _getNodeList(ctx, pid int64, status, depth int, name string, limit, offset uint64, includeParent bool) (result []*Node, err error) {
+	var sb = dbs.NewSelectBuilder()
+	sb.Selects("c.id", "c.ctx", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
+	sb.From(this.Table, "AS c")
+	if pid > 0 {
+		if includeParent {
+			sb.LeftJoin(this.Table, "AS pc ON pc.ctx = c.ctx AND pc.left_value <= c.left_value AND pc.right_value >= c.right_value")
+		} else {
+			sb.LeftJoin(this.Table, "AS pc ON pc.ctx = c.ctx AND pc.left_value < c.left_value AND pc.right_value > c.right_value")
+		}
+		sb.Where("pc.id = ?", pid)
+	}
+	sb.Where("c.ctx = ?", ctx)
+	if status > 0 {
+		sb.Where("c.status = ?", status)
+	}
+	if depth > 0 {
+		if pid > 0 {
+			sb.Where("c.depth - pc.depth <= ?", depth)
+		} else {
+			sb.Where("c.depth <= ?", depth)
+		}
+	}
+	if name != "" {
+		var keyword = "%" + name + "%"
+		sb.Where("c.name LIKE ?", keyword)
+	}
+	sb.OrderBy("c.ctx", "c.left_value")
+	if limit > 0 {
+		sb.Limit(limit)
+	}
+	if offset > 0 {
+		sb.Offset(offset)
+	}
+
+	if err = sb.Scan(this.DB, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func (this *Manager) getNode(ctx, id int64, result interface{}) (err error) {
 	var tx = dbs.MustTx(this.DB)
 

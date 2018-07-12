@@ -33,7 +33,6 @@ func main() {
 	//m.AddToLastWithId(19, 17, "男装", nest.K_STATUS_ENABLE)
 	//m.AddToLastWithId(20, 17, "童装", nest.K_STATUS_ENABLE)
 
-
 	var nodeList []*nest.Node
 	m.GetNodeList(1001, 0, 1000, 1, "", 0, 0, false, &nodeList)
 

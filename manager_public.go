@@ -152,3 +152,7 @@ func (this *Manager) MoveToLeft(id, rid int64) (err error) {
 func (this *Manager) MoveToRight(id, rid int64) (err error) {
 	return this.moveNode(K_MOVE_POSITION_RIGHT, id, rid)
 }
+
+func (this *Manager) MoveTo(id, rid int64, position int) (err error) {
+	return this.moveNode(position, id, rid)
+}
