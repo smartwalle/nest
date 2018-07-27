@@ -29,7 +29,7 @@ func (this *Manager) _getNodeWithMaxRightValue(tx dbs.TX, ctx int64) (result *No
 	return result, nil
 }
 
-func (this *Manager) _getNodeList(ctx, pid int64, status, depth int, name string, limit, offset uint64, includeParent bool) (result []*Node, err error) {
+func (this *Manager) _getNodeList(ctx, pid int64, status, depth int, name string, limit, offset int64, includeParent bool) (result []*Node, err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id", "c.ctx", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
 	sb.From(this.Table, "AS c")
@@ -108,7 +108,7 @@ func (this *Manager) getNodeWithName(ctx int, name string, result interface{}) (
 	return nil
 }
 
-func (this *Manager) getNodeList(ctx, pid int64, status, depth int, name string, limit, offset uint64, includeParent bool, result interface{}) (err error) {
+func (this *Manager) getNodeList(ctx, pid int64, status, depth int, name string, limit, offset int64, includeParent bool, result interface{}) (err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects(this.SelectFields...)
 	sb.From(this.Table, "AS c")

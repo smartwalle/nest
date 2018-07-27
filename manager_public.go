@@ -112,7 +112,7 @@ func (this *Manager) GetParentPathList(ctx, id int64, status int, result interfa
 // name: 模糊匹配 name 字段
 // limit: 返回多少条数据
 // includeParent: 如果有传递 parentId 参数，将可以通过此参数设定是否需要返回 parentId 对应的节点信息
-func (this *Manager) GetNodeList(ctx, pid int64, status, depth int, name string, limit, offset uint64, includeParent bool, result interface{}) (err error) {
+func (this *Manager) GetNodeList(ctx, pid int64, status, depth int, name string, limit, offset int64, includeParent bool, result interface{}) (err error) {
 	return this.getNodeList(ctx, pid, status, depth, name, limit, offset, includeParent, result)
 }
 
