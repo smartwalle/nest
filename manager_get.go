@@ -10,7 +10,7 @@ func (this *Manager) _getNodeWithId(tx dbs.TX, id int64) (result *Node, err erro
 	sb.From(this.Table, "AS c")
 	sb.Where("c.id = ?", id)
 	sb.Limit(1)
-	if err = sb.ScanTx(tx, &result); err != nil {
+	if err = sb.Scan(tx, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -23,7 +23,7 @@ func (this *Manager) _getNodeWithMaxRightValue(tx dbs.TX, ctx int64) (result *No
 	sb.Where("c.ctx = ?", ctx)
 	sb.OrderBy("c.right_value DESC")
 	sb.Limit(1)
-	if err = sb.ScanTx(tx, &result); err != nil {
+	if err = sb.Scan(tx, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -90,7 +90,7 @@ func (this *Manager) getNodeWithId(tx dbs.TX, ctx, id int64, result interface{})
 	sb.Where("c.id = ?", id)
 	sb.Where("c.ctx = ?", ctx)
 	sb.Limit(1)
-	if err = sb.ScanTx(tx, result); err != nil {
+	if err = sb.Scan(tx, result); err != nil {
 		return err
 	}
 	return nil

@@ -106,7 +106,7 @@ func (this *Manager) insertNodeToFirst(tx dbs.TX, refer *Node, id int64, name st
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.LeftValue)
-	if _, err = ubLeft.ExecTx(tx); err != nil {
+	if _, err = ubLeft.Exec(tx); err != nil {
 		return 0, err
 	}
 
@@ -115,7 +115,7 @@ func (this *Manager) insertNodeToFirst(tx dbs.TX, refer *Node, id int64, name st
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value > ?", refer.Ctx, refer.LeftValue)
-	if _, err = ubRight.ExecTx(tx); err != nil {
+	if _, err = ubRight.Exec(tx); err != nil {
 		return 0, err
 	}
 
@@ -131,7 +131,7 @@ func (this *Manager) insertNodeToLast(tx dbs.TX, refer *Node, id int64, name str
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.RightValue)
-	if _, err = ubLeft.ExecTx(tx); err != nil {
+	if _, err = ubLeft.Exec(tx); err != nil {
 		return 0, err
 	}
 
@@ -140,7 +140,7 @@ func (this *Manager) insertNodeToLast(tx dbs.TX, refer *Node, id int64, name str
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value >= ?", refer.Ctx, refer.RightValue)
-	if _, err = ubRight.ExecTx(tx); err != nil {
+	if _, err = ubRight.Exec(tx); err != nil {
 		return 0, err
 	}
 
@@ -157,7 +157,7 @@ func (this *Manager) insertNodeToLeft(tx dbs.TX, refer *Node, id int64, name str
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value >= ?", refer.Ctx, refer.LeftValue)
-	if _, err = ubLeft.ExecTx(tx); err != nil {
+	if _, err = ubLeft.Exec(tx); err != nil {
 		return 0, err
 	}
 
@@ -166,7 +166,7 @@ func (this *Manager) insertNodeToLeft(tx dbs.TX, refer *Node, id int64, name str
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value >= ?", refer.Ctx, refer.LeftValue)
-	if _, err = ubRight.ExecTx(tx); err != nil {
+	if _, err = ubRight.Exec(tx); err != nil {
 		return 0, err
 	}
 
@@ -182,7 +182,7 @@ func (this *Manager) insertNodeToRight(tx dbs.TX, refer *Node, id int64, name st
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.RightValue)
-	if _, err = ubLeft.ExecTx(tx); err != nil {
+	if _, err = ubLeft.Exec(tx); err != nil {
 		return 0, err
 	}
 
@@ -191,7 +191,7 @@ func (this *Manager) insertNodeToRight(tx dbs.TX, refer *Node, id int64, name st
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value > ?", refer.Ctx, refer.RightValue)
-	if _, err = ubRight.ExecTx(tx); err != nil {
+	if _, err = ubRight.Exec(tx); err != nil {
 		return 0, err
 	}
 
@@ -229,7 +229,7 @@ func (this *Manager) insertNode(tx dbs.TX, id, ctx int64, name string, leftValue
 		ib.SET(key, ext[key])
 	}
 
-	if sResult, err := ib.ExecTx(tx); err != nil {
+	if sResult, err := ib.Exec(tx); err != nil {
 		return 0, err
 	} else {
 		result, _ = sResult.LastInsertId()
