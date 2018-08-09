@@ -5,11 +5,12 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/smartwalle/dbs"
 	"github.com/smartwalle/nest"
+	"github.com/smartwalle/nest/service/repository/mysql"
 )
 
 func main() {
 	var db, _ = dbs.NewSQL("mysql", "root:yangfeng@tcp(192.168.1.99:3306)/test?parseTime=true", 2, 2)
-	var m = nest.NewManager(db, "org_department")
+	var m = mysql.NewNestRepository(db, "org_department")
 
 	//m.AddRootWithId(1001, 1, "新闻分类", nest.K_STATUS_ENABLE)
 	//m.AddToLastWithId(2, 1, "体育", nest.K_STATUS_ENABLE)

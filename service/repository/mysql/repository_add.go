@@ -1,17 +1,10 @@
-package nest
+package mysql
 
 import (
 	"github.com/smartwalle/dbs"
 	"sort"
 	"time"
-)
-
-const (
-	K_ADD_POSITION_ROOT  = 0 // 顶级节点
-	K_ADD_POSITION_FIRST = 1 // 列表头部 (子节点)
-	K_ADD_POSITION_LAST  = 2 // 列表尾部 (子节点)
-	K_ADD_POSITION_LEFT  = 3 // 左边 (兄弟节点)
-	K_ADD_POSITION_RIGHT = 4 // 右边 (兄弟节点)
+	"github.com/smartwalle/nest"
 )
 
 // addNode 添加节点
@@ -26,13 +19,13 @@ const (
 // name: 节点名
 // status: 节点状态 1000、有效；2000、无效；
 // ext: 其它数据；
-func (this *Manager) addNode(id, ctx int64, position int, rid int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
-	var tx = dbs.MustTx(this.DB)
+func (this *nestRepository) addNode(id, ctx int64, position int, rid int64, name string, status int, exts ...map[string]interface{}) (result int64, err error) {
+	var tx = dbs.MustTx(this.db)
 
 	// 查询出参照节点的信息
-	var referNode *Node
+	var referNode *nest.Node
 
-	if position == K_ADD_POSITION_ROOT {
+	if position == nest.K_ADD_POSITION_ROOT {
 		// 如果是添加顶级节点，那么参照节点为 right value 最大的
 		if referNode, err = this._getNodeWithMaxRightValue(tx, ctx); err != nil {
 			return 0, err
@@ -40,7 +33,7 @@ func (this *Manager) addNode(id, ctx int64, position int, rid int64, name string
 
 		// 如果参照节点为 nil，则创建一个虚拟的
 		if referNode == nil {
-			referNode = &Node{}
+			referNode = &nest.Node{}
 			referNode.Id = -1
 			referNode.Ctx = ctx
 			referNode.LeftValue = 0
@@ -53,7 +46,7 @@ func (this *Manager) addNode(id, ctx int64, position int, rid int64, name string
 		}
 		if referNode == nil {
 			tx.Rollback()
-			return 0, ErrNodeNotExist
+			return 0, nest.ErrNodeNotExist
 		}
 	}
 
@@ -72,24 +65,24 @@ func (this *Manager) addNode(id, ctx int64, position int, rid int64, name string
 	return result, nil
 }
 
-func (this *Manager) addNodeWithPosition(tx dbs.TX, refer *Node, id int64, position int, name string, status int, ext map[string]interface{}) (result int64, err error) {
+func (this *nestRepository) addNodeWithPosition(tx dbs.TX, refer *nest.Node, id int64, position int, name string, status int, ext map[string]interface{}) (result int64, err error) {
 	switch position {
-	case K_ADD_POSITION_ROOT:
+	case nest.K_ADD_POSITION_ROOT:
 		return this.insertNodeToRoot(tx, refer, id, name, status, ext)
-	case K_ADD_POSITION_FIRST:
+	case nest.K_ADD_POSITION_FIRST:
 		return this.insertNodeToFirst(tx, refer, id, name, status, ext)
-	case K_ADD_POSITION_LAST:
+	case nest.K_ADD_POSITION_LAST:
 		return this.insertNodeToLast(tx, refer, id, name, status, ext)
-	case K_ADD_POSITION_LEFT:
+	case nest.K_ADD_POSITION_LEFT:
 		return this.insertNodeToLeft(tx, refer, id, name, status, ext)
-	case K_ADD_POSITION_RIGHT:
+	case nest.K_ADD_POSITION_RIGHT:
 		return this.insertNodeToRight(tx, refer, id, name, status, ext)
 	}
 	tx.Rollback()
-	return 0, ErrUnknownPosition
+	return 0, nest.ErrUnknownPosition
 }
 
-func (this *Manager) insertNodeToRoot(tx dbs.TX, refer *Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
+func (this *nestRepository) insertNodeToRoot(tx dbs.TX, refer *nest.Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
 	var ctx = refer.Ctx
 	var leftValue = refer.RightValue + 1
 	var rightValue = refer.RightValue + 2
@@ -100,9 +93,9 @@ func (this *Manager) insertNodeToRoot(tx dbs.TX, refer *Node, id int64, name str
 	return result, nil
 }
 
-func (this *Manager) insertNodeToFirst(tx dbs.TX, refer *Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
+func (this *nestRepository) insertNodeToFirst(tx dbs.TX, refer *nest.Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
-	ubLeft.Table(this.Table)
+	ubLeft.Table(this.table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.LeftValue)
@@ -111,7 +104,7 @@ func (this *Manager) insertNodeToFirst(tx dbs.TX, refer *Node, id int64, name st
 	}
 
 	var ubRight = dbs.NewUpdateBuilder()
-	ubRight.Table(this.Table)
+	ubRight.Table(this.table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value > ?", refer.Ctx, refer.LeftValue)
@@ -125,9 +118,9 @@ func (this *Manager) insertNodeToFirst(tx dbs.TX, refer *Node, id int64, name st
 	return result, nil
 }
 
-func (this *Manager) insertNodeToLast(tx dbs.TX, refer *Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
+func (this *nestRepository) insertNodeToLast(tx dbs.TX, refer *nest.Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
-	ubLeft.Table(this.Table)
+	ubLeft.Table(this.table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.RightValue)
@@ -136,7 +129,7 @@ func (this *Manager) insertNodeToLast(tx dbs.TX, refer *Node, id int64, name str
 	}
 
 	var ubRight = dbs.NewUpdateBuilder()
-	ubRight.Table(this.Table)
+	ubRight.Table(this.table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value >= ?", refer.Ctx, refer.RightValue)
@@ -151,9 +144,9 @@ func (this *Manager) insertNodeToLast(tx dbs.TX, refer *Node, id int64, name str
 	return result, nil
 }
 
-func (this *Manager) insertNodeToLeft(tx dbs.TX, refer *Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
+func (this *nestRepository) insertNodeToLeft(tx dbs.TX, refer *nest.Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
-	ubLeft.Table(this.Table)
+	ubLeft.Table(this.table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value >= ?", refer.Ctx, refer.LeftValue)
@@ -162,7 +155,7 @@ func (this *Manager) insertNodeToLeft(tx dbs.TX, refer *Node, id int64, name str
 	}
 
 	var ubRight = dbs.NewUpdateBuilder()
-	ubRight.Table(this.Table)
+	ubRight.Table(this.table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value >= ?", refer.Ctx, refer.LeftValue)
@@ -176,9 +169,9 @@ func (this *Manager) insertNodeToLeft(tx dbs.TX, refer *Node, id int64, name str
 	return result, nil
 }
 
-func (this *Manager) insertNodeToRight(tx dbs.TX, refer *Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
+func (this *nestRepository) insertNodeToRight(tx dbs.TX, refer *nest.Node, id int64, name string, status int, ext map[string]interface{}) (result int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
-	ubLeft.Table(this.Table)
+	ubLeft.Table(this.table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.RightValue)
@@ -187,7 +180,7 @@ func (this *Manager) insertNodeToRight(tx dbs.TX, refer *Node, id int64, name st
 	}
 
 	var ubRight = dbs.NewUpdateBuilder()
-	ubRight.Table(this.Table)
+	ubRight.Table(this.table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value > ?", refer.Ctx, refer.RightValue)
@@ -201,10 +194,10 @@ func (this *Manager) insertNodeToRight(tx dbs.TX, refer *Node, id int64, name st
 	return result, nil
 }
 
-func (this *Manager) insertNode(tx dbs.TX, id, ctx int64, name string, leftValue, rightValue, depth, status int, ext map[string]interface{}) (result int64, err error) {
+func (this *nestRepository) insertNode(tx dbs.TX, id, ctx int64, name string, leftValue, rightValue, depth, status int, ext map[string]interface{}) (result int64, err error) {
 	var now = time.Now()
 	var ib = dbs.NewInsertBuilder()
-	ib.Table(this.Table)
+	ib.Table(this.table)
 
 	if ext == nil {
 		ext = make(map[string]interface{})

@@ -1,26 +1,19 @@
-package nest
+package mysql
 
 import (
 	"github.com/smartwalle/dbs"
 	"sort"
 	"time"
+	"github.com/smartwalle/nest"
 )
 
-const (
-	K_MOVE_POSITION_ROOT  = 0 // 顶级节点
-	K_MOVE_POSITION_FIRST = 1 // 列表头部 (子节点)
-	K_MOVE_POSITION_LAST  = 2 // 列表尾部 (子节点)
-	K_MOVE_POSITION_LEFT  = 3 // 左边 (兄弟节点)
-	K_MOVE_POSITION_RIGHT = 4 // 右边 (兄弟节点)
-)
-
-func (this *Manager) updateNode(id int64, updateInfo map[string]interface{}) (err error) {
+func (this *nestRepository) updateNode(id int64, updateInfo map[string]interface{}) (err error) {
 	if updateInfo == nil || len(updateInfo) == 0 {
 		return nil
 	}
 
 	var ub = dbs.NewUpdateBuilder()
-	ub.Table(this.Table)
+	ub.Table(this.table)
 
 	delete(updateInfo, "id")
 	delete(updateInfo, "ctx")
@@ -43,7 +36,7 @@ func (this *Manager) updateNode(id int64, updateInfo map[string]interface{}) (er
 
 	ub.Where("id = ?", id)
 	ub.Limit(1)
-	if _, err = ub.Exec(this.DB); err != nil {
+	if _, err = ub.Exec(this.db); err != nil {
 		return nil
 	}
 	return nil
@@ -56,16 +49,16 @@ func (this *Manager) updateNode(id int64, updateInfo map[string]interface{}) (er
 // 		0、只更新当前节点的状态，子节点的状态不会受到影响，并且不会改变父子关系；
 // 		1、子节点的状态会一起更新，不会改变父子关系；
 // 		2、子节点的状态不会受到影响，并且所有子节点会向上移动一级（只针对把状态设置为 无效 的时候）；
-func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err error) {
-	var tx = dbs.MustTx(this.DB)
-	var node *Node
+func (this *nestRepository) updateNodeStatus(id int64, status, updateType int) (err error) {
+	var tx = dbs.MustTx(this.db)
+	var node *nest.Node
 	if node, err = this._getNodeWithId(tx, id); err != nil {
 		return err
 	}
 
 	if node == nil {
 		tx.Rollback()
-		return ErrNodeNotExist
+		return nest.ErrNodeNotExist
 	}
 
 	if node.Status == status {
@@ -77,9 +70,9 @@ func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err err
 
 	switch updateType {
 	case 2:
-		if status == K_STATUS_DISABLE {
+		if status == nest.K_STATUS_DISABLE {
 			var ub = dbs.NewUpdateBuilder()
-			ub.Table(this.Table)
+			ub.Table(this.table)
 			ub.SET("status", status)
 			ub.SET("right_value", dbs.SQL("left_value + 1"))
 			ub.SET("updated_on", now)
@@ -90,7 +83,7 @@ func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err err
 			}
 
 			var ubChild = dbs.NewUpdateBuilder()
-			ubChild.Table(this.Table)
+			ubChild.Table(this.table)
 			ubChild.SET("left_value", dbs.SQL("left_value + 1"))
 			ubChild.SET("right_value", dbs.SQL("right_value + 1"))
 			ubChild.SET("depth", dbs.SQL("depth-1"))
@@ -102,7 +95,7 @@ func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err err
 		}
 	case 1:
 		var ub = dbs.NewUpdateBuilder()
-		ub.Table(this.Table)
+		ub.Table(this.table)
 		ub.SET("status", status)
 		ub.SET("updated_on", now)
 		ub.Where("ctx = ? AND left_value >= ? AND right_value <= ?", node.Ctx, node.LeftValue, node.RightValue)
@@ -111,7 +104,7 @@ func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err err
 		}
 	case 0:
 		var ub = dbs.NewUpdateBuilder()
-		ub.Table(this.Table)
+		ub.Table(this.table)
 		ub.SET("status", status)
 		ub.SET("updated_on", now)
 		ub.Where("id = ?", id)
@@ -127,26 +120,26 @@ func (this *Manager) updateNodeStatus(id int64, status, updateType int) (err err
 	return nil
 }
 
-func (this *Manager) moveNode(position int, id, rid int64) (err error) {
+func (this *nestRepository) moveNode(position int, id, rid int64) (err error) {
 	if id == rid {
-		return ErrParentNotAllowed
+		return nest.ErrParentNotAllowed
 	}
 
-	var tx = dbs.MustTx(this.DB)
+	var tx = dbs.MustTx(this.db)
 
 	// 判断被移动的节点是否存在
-	var node *Node
+	var node *nest.Node
 	if node, err = this._getNodeWithId(tx, id); err != nil {
 		return err
 	}
 	if node == nil {
 		tx.Rollback()
-		return ErrNodeNotExist
+		return nest.ErrNodeNotExist
 	}
 
 	// 判断参照节点是否存在
-	var refer *Node
-	if position == K_MOVE_POSITION_ROOT {
+	var refer *nest.Node
+	if position == nest.K_MOVE_POSITION_ROOT {
 		// 如果是添加顶级节点，那么参照节点为 right value 最大的
 		if refer, err = this._getNodeWithMaxRightValue(tx, node.Ctx); err != nil {
 			return err
@@ -162,19 +155,19 @@ func (this *Manager) moveNode(position int, id, rid int64) (err error) {
 	}
 	if refer == nil {
 		tx.Rollback()
-		return ErrParentNotExist
+		return nest.ErrParentNotExist
 	}
 
 	// 判断被移动节点和目标参照节点是否属于同一 Ctx
 	if refer.Ctx != node.Ctx {
 		tx.Rollback()
-		return ErrParentNotAllowed
+		return nest.ErrParentNotAllowed
 	}
 
 	// 循环连接问题，即 参照节点 是 被移动节点 的子节点
 	if refer.LeftValue > node.LeftValue && refer.RightValue < node.RightValue {
 		tx.Rollback()
-		return ErrParentNotAllowed
+		return nest.ErrParentNotAllowed
 	}
 
 	// 判断是否已经是子节点
@@ -207,13 +200,13 @@ func (this *Manager) moveNode(position int, id, rid int64) (err error) {
 	return nil
 }
 
-func (this *Manager) moveNodeWithPosition(tx dbs.TX, position int, node, refer *Node, updateIdList []int64) (err error) {
+func (this *nestRepository) moveNodeWithPosition(tx dbs.TX, position int, node, refer *nest.Node, updateIdList []int64) (err error) {
 	var nodeLen = node.RightValue - node.LeftValue + 1
 	var now = time.Now()
 
 	// 把要移动的节点及其子节点从原树中删除掉
 	var ubTreeLeft = dbs.NewUpdateBuilder()
-	ubTreeLeft.Table(this.Table)
+	ubTreeLeft.Table(this.table)
 	ubTreeLeft.SET("left_value", dbs.SQL("left_value - ?", nodeLen))
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("ctx = ? AND left_value > ?", node.Ctx, node.RightValue)
@@ -221,7 +214,7 @@ func (this *Manager) moveNodeWithPosition(tx dbs.TX, position int, node, refer *
 		return err
 	}
 	var ubTreeRight = dbs.NewUpdateBuilder()
-	ubTreeRight.Table(this.Table)
+	ubTreeRight.Table(this.table)
 	ubTreeRight.SET("right_value", dbs.SQL("right_value - ?", nodeLen))
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("ctx = ? AND right_value > ?", node.Ctx, node.RightValue)
@@ -237,27 +230,27 @@ func (this *Manager) moveNodeWithPosition(tx dbs.TX, position int, node, refer *
 	}
 
 	switch position {
-	case K_MOVE_POSITION_ROOT:
+	case nest.K_MOVE_POSITION_ROOT:
 		return this.moveToRight(tx, node, refer, updateIdList, nodeLen)
-	case K_MOVE_POSITION_FIRST:
+	case nest.K_MOVE_POSITION_FIRST:
 		return this.moveToFirst(tx, node, refer, updateIdList, nodeLen)
-	case K_MOVE_POSITION_LAST:
+	case nest.K_MOVE_POSITION_LAST:
 		return this.moveToLast(tx, node, refer, updateIdList, nodeLen)
-	case K_MOVE_POSITION_LEFT:
+	case nest.K_MOVE_POSITION_LEFT:
 		return this.moveToLeft(tx, node, refer, updateIdList, nodeLen)
-	case K_MOVE_POSITION_RIGHT:
+	case nest.K_MOVE_POSITION_RIGHT:
 		return this.moveToRight(tx, node, refer, updateIdList, nodeLen)
 	}
 	tx.Rollback()
-	return ErrUnknownPosition
+	return nest.ErrUnknownPosition
 }
 
-func (this *Manager) moveToFirst(tx dbs.TX, node, parent *Node, updateIdList []int64, nodeLen int) (err error) {
+func (this *nestRepository) moveToFirst(tx dbs.TX, node, parent *nest.Node, updateIdList []int64, nodeLen int) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
 	var ubTreeLeft = dbs.NewUpdateBuilder()
-	ubTreeLeft.Table(this.Table)
+	ubTreeLeft.Table(this.table)
 	ubTreeLeft.SET("left_value", dbs.SQL("left_value + ?", nodeLen))
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("ctx = ? AND left_value > ?", parent.Ctx, parent.LeftValue)
@@ -267,7 +260,7 @@ func (this *Manager) moveToFirst(tx dbs.TX, node, parent *Node, updateIdList []i
 	}
 
 	var ubTreeRight = dbs.NewUpdateBuilder()
-	ubTreeRight.Table(this.Table)
+	ubTreeRight.Table(this.table)
 	ubTreeRight.SET("right_value", dbs.SQL("right_value + ?", nodeLen))
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("ctx = ? AND right_value > ?", parent.Ctx, parent.LeftValue)
@@ -282,7 +275,7 @@ func (this *Manager) moveToFirst(tx dbs.TX, node, parent *Node, updateIdList []i
 	var diff = node.LeftValue - parent.LeftValue - 1
 	var diffDepth = parent.Depth - node.Depth + 1
 	var ubTree = dbs.NewUpdateBuilder()
-	ubTree.Table(this.Table)
+	ubTree.Table(this.table)
 	ubTree.SET("left_value", dbs.SQL("left_value - ?", diff))
 	ubTree.SET("right_value", dbs.SQL("right_value - ?", diff))
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
@@ -295,12 +288,12 @@ func (this *Manager) moveToFirst(tx dbs.TX, node, parent *Node, updateIdList []i
 	return nil
 }
 
-func (this *Manager) moveToLast(tx dbs.TX, node, parent *Node, updateIdList []int64, nodeLen int) (err error) {
+func (this *nestRepository) moveToLast(tx dbs.TX, node, parent *nest.Node, updateIdList []int64, nodeLen int) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
 	var ubTreeLeft = dbs.NewUpdateBuilder()
-	ubTreeLeft.Table(this.Table)
+	ubTreeLeft.Table(this.table)
 	ubTreeLeft.SET("left_value", dbs.SQL("left_value + ?", nodeLen))
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("ctx = ? AND left_value > ?", parent.Ctx, parent.RightValue)
@@ -310,7 +303,7 @@ func (this *Manager) moveToLast(tx dbs.TX, node, parent *Node, updateIdList []in
 	}
 
 	var ubTreeRight = dbs.NewUpdateBuilder()
-	ubTreeRight.Table(this.Table)
+	ubTreeRight.Table(this.table)
 	ubTreeRight.SET("right_value", dbs.SQL("right_value + ?", nodeLen))
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("ctx = ? AND right_value >= ?", parent.Ctx, parent.RightValue)
@@ -325,7 +318,7 @@ func (this *Manager) moveToLast(tx dbs.TX, node, parent *Node, updateIdList []in
 	var diff = node.RightValue - parent.RightValue + 1
 	var diffDepth = parent.Depth - node.Depth + 1
 	var ubTree = dbs.NewUpdateBuilder()
-	ubTree.Table(this.Table)
+	ubTree.Table(this.table)
 	ubTree.SET("left_value", dbs.SQL("left_value - ?", diff))
 	ubTree.SET("right_value", dbs.SQL("right_value - ?", diff))
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
@@ -338,12 +331,12 @@ func (this *Manager) moveToLast(tx dbs.TX, node, parent *Node, updateIdList []in
 	return nil
 }
 
-func (this *Manager) moveToLeft(tx dbs.TX, node, refer *Node, updateIdList []int64, nodeLen int) (err error) {
+func (this *nestRepository) moveToLeft(tx dbs.TX, node, refer *nest.Node, updateIdList []int64, nodeLen int) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
 	var ubTreeLeft = dbs.NewUpdateBuilder()
-	ubTreeLeft.Table(this.Table)
+	ubTreeLeft.Table(this.table)
 	ubTreeLeft.SET("left_value", dbs.SQL("left_value + ?", nodeLen))
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("ctx = ? AND left_value >= ?", refer.Ctx, refer.LeftValue)
@@ -353,7 +346,7 @@ func (this *Manager) moveToLeft(tx dbs.TX, node, refer *Node, updateIdList []int
 	}
 
 	var ubTreeRight = dbs.NewUpdateBuilder()
-	ubTreeRight.Table(this.Table)
+	ubTreeRight.Table(this.table)
 	ubTreeRight.SET("right_value", dbs.SQL("right_value + ?", nodeLen))
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("ctx = ? AND right_value >= ?", refer.Ctx, refer.LeftValue)
@@ -368,7 +361,7 @@ func (this *Manager) moveToLeft(tx dbs.TX, node, refer *Node, updateIdList []int
 	var diff = node.LeftValue - refer.LeftValue
 	var diffDepth = refer.Depth - node.Depth
 	var ubTree = dbs.NewUpdateBuilder()
-	ubTree.Table(this.Table)
+	ubTree.Table(this.table)
 	ubTree.SET("left_value", dbs.SQL("left_value - ?", diff))
 	ubTree.SET("right_value", dbs.SQL("right_value - ?", diff))
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
@@ -381,12 +374,12 @@ func (this *Manager) moveToLeft(tx dbs.TX, node, refer *Node, updateIdList []int
 	return nil
 }
 
-func (this *Manager) moveToRight(tx dbs.TX, node, refer *Node, updateIdList []int64, nodeLen int) (err error) {
+func (this *nestRepository) moveToRight(tx dbs.TX, node, refer *nest.Node, updateIdList []int64, nodeLen int) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
 	var ubTreeLeft = dbs.NewUpdateBuilder()
-	ubTreeLeft.Table(this.Table)
+	ubTreeLeft.Table(this.table)
 	ubTreeLeft.SET("left_value", dbs.SQL("left_value + ?", nodeLen))
 	ubTreeLeft.SET("updated_on", now)
 	ubTreeLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.RightValue)
@@ -396,7 +389,7 @@ func (this *Manager) moveToRight(tx dbs.TX, node, refer *Node, updateIdList []in
 	}
 
 	var ubTreeRight = dbs.NewUpdateBuilder()
-	ubTreeRight.Table(this.Table)
+	ubTreeRight.Table(this.table)
 	ubTreeRight.SET("right_value", dbs.SQL("right_value + ?", nodeLen))
 	ubTreeRight.SET("updated_on", now)
 	ubTreeRight.Where("ctx = ? AND right_value > ?", refer.Ctx, refer.RightValue)
@@ -409,7 +402,7 @@ func (this *Manager) moveToRight(tx dbs.TX, node, refer *Node, updateIdList []in
 	var diff = node.LeftValue - refer.RightValue - 1
 	var diffDepth = refer.Depth - node.Depth
 	var ubTree = dbs.NewUpdateBuilder()
-	ubTree.Table(this.Table)
+	ubTree.Table(this.table)
 	ubTree.SET("left_value", dbs.SQL("left_value - ?", diff))
 	ubTree.SET("right_value", dbs.SQL("right_value - ?", diff))
 	ubTree.SET("depth", dbs.SQL("depth + ?", diffDepth))
