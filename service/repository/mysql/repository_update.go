@@ -2,9 +2,9 @@ package mysql
 
 import (
 	"github.com/smartwalle/dbs"
+	"github.com/smartwalle/nest"
 	"sort"
 	"time"
-	"github.com/smartwalle/nest"
 )
 
 func (this *nestRepository) updateNode(id int64, updateInfo map[string]interface{}) (err error) {

@@ -2,9 +2,9 @@ package mysql
 
 import (
 	"github.com/smartwalle/dbs"
+	"github.com/smartwalle/nest"
 	"sort"
 	"time"
-	"github.com/smartwalle/nest"
 )
 
 // addNode 添加节点
