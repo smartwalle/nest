@@ -15,4 +15,4 @@ const nestSQL = "" +
 	"UNIQUE KEY `nest_id_uindex` (`id`)," +
 	"KEY `nest_ctx_index` (`ctx`)," +
 	"KEY `nest_id_ctx_index` (`id`,`ctx`)" +
-	");"
+	") ENGINE=InnoDB DEFAULT CHARSET=utf8;"
