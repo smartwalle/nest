@@ -1,24 +1,49 @@
 package mysql
 
 import (
+	"fmt"
 	"github.com/smartwalle/dbs"
-	"github.com/smartwalle/nest/service"
+	"github.com/smartwalle/nest"
 )
 
 type nestRepository struct {
-	db           dbs.DB
-	table        string
-	selectFields []string
+	db    dbs.DB
+	table string
 }
 
-func NewNestRepository(db dbs.DB, table string, selectFields ...string) service.NestRepository {
+func NewRepository(db dbs.DB, table string) nest.Repository {
 	var r = &nestRepository{}
 	r.db = db
 	r.table = table
-	if len(selectFields) == 0 {
-		r.selectFields = []string{"c.id", "c.ctx", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on"}
-	} else {
-		r.selectFields = selectFields
+
+	if err := r.initTable(); err != nil {
+		panic(fmt.Sprintf("创建 %s 失败, 错误信息为: %v", table, err))
 	}
 	return r
+}
+
+func (this *nestRepository) BeginTx() (dbs.TX, nest.Repository) {
+	var tx = dbs.MustTx(this.db)
+	var nRepo = *this
+	nRepo.db = tx
+	return tx, &nRepo
+}
+
+func (this *nestRepository) WithTx(tx dbs.TX) nest.Repository {
+	var nRepo = *this
+	nRepo.db = tx
+	return &nRepo
+}
+
+func (this *nestRepository) initTable() error {
+	var tx = dbs.MustTx(this.db)
+
+	var cb = dbs.NewBuilder("")
+	cb.Format(nestSQL, this.table)
+	if _, err := cb.Exec(tx); err != nil {
+		return err
+	}
+
+	tx.Commit()
+	return nil
 }

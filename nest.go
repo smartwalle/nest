@@ -2,25 +2,21 @@ package nest
 
 import "time"
 
-const (
-	K_STATUS_ENABLE  = 1000 // 启用
-	K_STATUS_DISABLE = 2000 // 禁用
-)
+type Status int
 
 const (
-	K_ADD_POSITION_ROOT  = 0 // 顶级节点
-	K_ADD_POSITION_FIRST = 1 // 列表头部 (子节点)
-	K_ADD_POSITION_LAST  = 2 // 列表尾部 (子节点)
-	K_ADD_POSITION_LEFT  = 3 // 左边 (兄弟节点)
-	K_ADD_POSITION_RIGHT = 4 // 右边 (兄弟节点)
+	Enable  Status = 1 // 启用
+	Disable Status = 2 // 禁用
 )
 
+type Position int
+
 const (
-	K_MOVE_POSITION_ROOT  = 0 // 顶级节点
-	K_MOVE_POSITION_FIRST = 1 // 列表头部 (子节点)
-	K_MOVE_POSITION_LAST  = 2 // 列表尾部 (子节点)
-	K_MOVE_POSITION_LEFT  = 3 // 左边 (兄弟节点)
-	K_MOVE_POSITION_RIGHT = 4 // 右边 (兄弟节点)
+	Root  Position = 0 // 顶级节点
+	First Position = 1 // 列表头部 (子节点)
+	Last  Position = 2 // 列表尾部 (子节点)
+	Left  Position = 3 // 左边 (兄弟节点)
+	Right Position = 4 // 右边 (兄弟节点)
 )
 
 type Node struct {
@@ -30,7 +26,7 @@ type Node struct {
 	LeftValue  int        `json:"left_value"                sql:"left_value"`
 	RightValue int        `json:"right_value"               sql:"right_value"`
 	Depth      int        `json:"depth"                     sql:"depth"`
-	Status     int        `json:"status"                    sql:"status"`
+	Status     Status     `json:"status"                    sql:"status"`
 	CreatedOn  *time.Time `json:"created_on,omitempty"      sql:"created_on"`
 	UpdatedOn  *time.Time `json:"updated_on,omitempty"      sql:"updated_on"`
 }
@@ -40,5 +36,5 @@ func (this *Node) IsLeaf() bool {
 }
 
 func (this *Node) IsValid() bool {
-	return this.Status == K_STATUS_ENABLE
+	return this.Status == Enable
 }

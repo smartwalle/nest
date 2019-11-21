@@ -1,6 +1,9 @@
 github.com/go-sql-driver/mysql v1.4.1 h1:g24URVg0OFbNUTx9qqY1IRZ9D9z3iPyi5zKhQZpNwpA=
 github.com/go-sql-driver/mysql v1.4.1/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
+github.com/smartwalle/dbc v0.0.7 h1:I6IIkpf+6Vz/qVPIsDbKyZ3WA133UYh2ZiBgB5WNs9g=
 github.com/smartwalle/dbc v0.0.7/go.mod h1:FsEIfjcUm3kf6iA38BaURPiChhMp5W6+8lJTI1krY0U=
 github.com/smartwalle/dbs v1.0.0 h1:4UzPq/wfzDVZFpBKXO5yckGqOdhVX8RZ6qv8nUCpGC8=
 github.com/smartwalle/dbs v1.0.0/go.mod h1:sTVYj2+GAmxGxTF88LR38dc57SA5Pr9/Uk2EPztLidA=
 github.com/smartwalle/dbs v1.1.0/go.mod h1:xyi9/eSQUcRF55Se7y59izm/r1zpAUXYzJkrYEg0p8w=
+github.com/smartwalle/dbs v1.1.4 h1:2UzDWAYQa5ext34n6tPZgFfMHmlLDwQHrql1+RYIro0=
+github.com/smartwalle/dbs v1.1.4/go.mod h1:xyi9/eSQUcRF55Se7y59izm/r1zpAUXYzJkrYEg0p8w=

@@ -9,33 +9,35 @@ import (
 )
 
 func main() {
-	var db, _ = dbs.NewSQL("mysql", "root:yangfeng@tcp(192.168.1.99:3306)/test?parseTime=true", 2, 2)
-	var m = mysql.NewNestRepository(db, "org_department")
+	var db, _ = dbs.NewSQL("mysql", "root:youle@tcp(192.168.1.77:3306)/tt?parseTime=true", 10, 1)
+	var m = mysql.NewRepository(db, "xd")
 
-	//m.AddRootWithId(1001, 1, "新闻分类", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(2, 1, "体育", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(3, 1, "娱乐", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(4, 1, "亲子", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(5, 1, "时尚", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(6, 1, "艺术", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(7, 1, "星座", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(8, 1, "教育", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(9, 2, "足球", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(10, 2, "篮球", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(11, 2, "田径", nest.K_STATUS_ENABLE)
-	//
-	//m.AddRootWithId(1002, 12, "商品分类", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(13, 12, "图书", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(14, 12, "家电", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(15, 12, "家具", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(16, 12, "食品", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(17, 12, "服装", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(18, 17, "女装", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(19, 17, "男装", nest.K_STATUS_ENABLE)
-	//m.AddToLastWithId(20, 17, "童装", nest.K_STATUS_ENABLE)
+	var ctx int64 = 1
+	m.AddRoot(ctx, "新闻分类", nest.Enable)
+	m.AddToLast(ctx, 1, "体育", nest.Enable)
+	m.AddToLast(ctx, 1, "娱乐", nest.Enable)
+	m.AddToLast(ctx, 1, "亲子", nest.Enable)
+	m.AddToLast(ctx, 1, "时尚", nest.Enable)
+	m.AddToLast(ctx, 1, "艺术", nest.Enable)
+	m.AddToLast(ctx, 1, "星座", nest.Enable)
+	m.AddToLast(ctx, 1, "教育", nest.Enable)
+	m.AddToLast(ctx, 2, "足球", nest.Enable)
+	m.AddToLast(ctx, 2, "篮球", nest.Enable)
+	m.AddToLast(ctx, 2, "田径", nest.Enable)
 
-	var nodeList []*nest.Node
-	m.GetNodeList(1001, 0, 1000, 1, "", 0, 0, false, &nodeList)
+	//ctx = 2
+	//m.AddRootWithId(ctx, 12, "商品分类", nest.Enable)
+	//m.AddToLastWithId(ctx, 13, 12, "图书", nest.Enable)
+	//m.AddToLastWithId(ctx, 14, 12, "家电", nest.Enable)
+	//m.AddToLastWithId(ctx, 15, 12, "家具", nest.Enable)
+	//m.AddToLastWithId(ctx, 16, 12, "食品", nest.Enable)
+	//m.AddToLastWithId(ctx, 17, 12, "服装", nest.Enable)
+	//m.AddToLastWithId(ctx, 18, 17, "女装", nest.Enable)
+	//m.AddToLastWithId(ctx, 19, 17, "男装", nest.Enable)
+	//m.AddToLastWithId(ctx, 20, 17, "童装", nest.Enable)
+
+	var nodeList, err = m.GetNodeList(ctx, 1, nest.Enable, 0, "", 0, 0, false)
+	fmt.Println(err)
 
 	for _, node := range nodeList {
 		fmt.Println(node.Ctx, node.Id, node.IsLeaf(), node.Name, node.LeftValue, node.RightValue)
