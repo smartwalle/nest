@@ -104,10 +104,16 @@ func (this *nestRepository) MoveToLast(ctx, id, pId int64) (err error) {
 }
 
 func (this *nestRepository) MoveToLeft(ctx, id, rId int64) (err error) {
+	if rId <= 0 {
+		return this.MoveUp(ctx, id)
+	}
 	return this.moveNode(nest.Left, ctx, id, rId)
 }
 
 func (this *nestRepository) MoveToRight(ctx, id, rId int64) (err error) {
+	if rId <= 0 {
+		return this.MoveDown(ctx, id)
+	}
 	return this.moveNode(nest.Right, ctx, id, rId)
 }
 

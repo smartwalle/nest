@@ -95,9 +95,11 @@ type Repository interface {
 	MoveToLast(ctx, id, pId int64) (err error)
 
 	// MoveToLeft 将节点调整为指定节点的兄弟节点，并将该节点位于指定节点的左边(前面)
+	// 如果 rId 参数小于等于 0，则本方法的作用与方法 MoveUp 一致
 	MoveToLeft(ctx, id, rId int64) (err error)
 
 	// MoveToRight 将节点调整为指定节点的兄弟节点，并将该节点位于指定节点的右边(后面)
+	// 如果 rId 参数小于等于 0，则本方法的作用与方法 MoveDown 一致
 	MoveToRight(ctx, id, rId int64) (err error)
 
 	// MoveUp 将节点向前移动一位，即向左移动一位

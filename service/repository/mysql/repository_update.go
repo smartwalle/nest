@@ -107,7 +107,11 @@ func (this *nestRepository) moveNode(position nest.Position, ctx, id, rId int64)
 	// 判断参照节点是否存在
 	var refer *nest.Node
 	if position == nest.Root {
-		// 如果是添加顶级节点，那么参照节点为 right value 最大的
+		// 如果已经是顶级节点，则直接返回
+		if node.Depth == 1 {
+			return nil
+		}
+		// 如果是顶级节点，那么参照节点为 right value 最大的
 		if refer, err = this.getMaxRightNode(node.Ctx); err != nil {
 			return err
 		}
