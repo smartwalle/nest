@@ -100,6 +100,12 @@ type Repository interface {
 	// MoveToRight 将节点调整为指定节点的兄弟节点，并将该节点位于指定节点的右边(后面)
 	MoveToRight(ctx, id, rId int64) (err error)
 
+	// MoveUp 将节点向前移动一位，即向左移动一位
+	MoveUp(ctx, id int64) (err error)
+
+	// MoveDown 将节点向后移动一位，即向右移动一位
+	MoveDown(ctx, id int64) (err error)
+
 	// MoveTo 移动节点
 	MoveTo(ctx, id, rId int64, position Position) (err error)
 }

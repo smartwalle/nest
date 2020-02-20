@@ -111,6 +111,44 @@ func (this *nestRepository) MoveToRight(ctx, id, rId int64) (err error) {
 	return this.moveNode(nest.Right, ctx, id, rId)
 }
 
+func (this *nestRepository) MoveUp(ctx, id int64) (err error) {
+	node, err := this.getNodeWithId(ctx, id)
+	if err != nil {
+		return err
+	}
+	if node == nil {
+		return nest.ErrNodeNotExist
+	}
+
+	rNode, err := this.getPreviousNode(ctx, id)
+	if err != nil {
+		return err
+	}
+	if rNode == nil {
+		return nest.ErrAlreadyFirstNode
+	}
+	return this.moveNode(nest.Left, ctx, id, rNode.Id)
+}
+
+func (this *nestRepository) MoveDown(ctx, id int64) (err error) {
+	node, err := this.getNodeWithId(ctx, id)
+	if err != nil {
+		return err
+	}
+	if node == nil {
+		return nest.ErrNodeNotExist
+	}
+
+	rNode, err := this.getNextNode(ctx, id)
+	if err != nil {
+		return err
+	}
+	if rNode == nil {
+		return nest.ErrAlreadyLastNode
+	}
+	return this.moveNode(nest.Right, ctx, id, rNode.Id)
+}
+
 func (this *nestRepository) MoveTo(ctx, id, rId int64, position nest.Position) (err error) {
 	return this.moveNode(position, ctx, id, rId)
 }

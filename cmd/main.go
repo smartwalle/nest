@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	var db, _ = dbs.NewSQL("mysql", "root:yangfen@tcp(127.0.0.1:3306)/tt?parseTime=true", 10, 1)
+	var db, _ = dbs.NewSQL("mysql", "root:yangfeng@tcp(127.0.0.1:3306)/tt?parseTime=true", 10, 1)
 	var m = mysql.NewRepository(db, "xd")
 
 	var ctx int64 = 1
@@ -27,8 +27,9 @@ func main() {
 	//fmt.Println(m.GetPreviousNode(ctx, 1))
 	//fmt.Println(m.GetPreviousNode(ctx, 3))
 	//fmt.Println(m.GetPreviousNode(ctx, 8))
-	fmt.Println(m.GetNextNode(ctx, 2))
-	fmt.Println(m.GetNextNode(ctx, 9))
+	//fmt.Println(m.GetNextNode(ctx, 2))
+	fmt.Println(m.MoveUp(ctx, 9))
+	//fmt.Println(m.GetNextNode(ctx, 9))
 
 	//ctx = 2
 	//m.AddRootWithId(ctx, 12, "商品分类", nest.Enable)
