@@ -39,7 +39,7 @@ func (this *nestRepository) initTable() error {
 	var tx = dbs.MustTx(this.db)
 
 	var cb = dbs.NewBuilder("")
-	cb.Format(nestSQL, this.table)
+	cb.Format(nestSQL, this.table, this.table, this.table, this.table, this.table, this.table)
 	if _, err := cb.Exec(tx); err != nil {
 		return err
 	}

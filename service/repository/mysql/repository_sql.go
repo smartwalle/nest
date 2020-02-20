@@ -12,7 +12,9 @@ const nestSQL = "" +
 	"`created_on` datetime DEFAULT NULL," +
 	"`updated_on` datetime DEFAULT NULL," +
 	"PRIMARY KEY (`id`)," +
-	"UNIQUE KEY `nest_id_uindex` (`id`)," +
-	"KEY `nest_ctx_index` (`ctx`)," +
-	"KEY `nest_id_ctx_index` (`id`,`ctx`)" +
+	"UNIQUE KEY `%s_id_uindex` (`id`)," +
+	"KEY `%s_ctx_index` (`ctx`)," +
+	"KEY `%s_id_ctx_index` (`id`,`ctx`)," +
+	"KEY `%s_ctx_right_value_index` (`ctx`,`right_value`)," +
+	"KEY `%s_ctx_left_value_index` (`ctx`,`left_value`)" +
 	") ENGINE=InnoDB DEFAULT CHARSET=utf8;"

@@ -7,14 +7,13 @@ import (
 )
 
 // addNode 添加节点
-// id: 指定节点的 id，如果值小于等于0，则表示自增；
 // ctx: 节点组标识；
 // position:
 // 		1、将新的节点添加到参照节点的子节点列表头部；
 // 		2、将新的节点添加到参照节点的子节点列表尾部；
 // 		3、将新的节点添加到参照节点的左边；
 // 		4、将新的节点添加到参照节点的右边；
-// rId: 参照节点 id，如果值等于 0，则表示添加顶级节点；
+// rId: 参照节点 id；
 // name: 节点名
 // status: 节点状态
 func (this *nestRepository) addNode(ctx int64, position nest.Position, rId int64, name string, status nest.Status) (result int64, err error) {

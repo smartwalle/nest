@@ -18,6 +18,38 @@ func (this *nestRepository) getMaxRightNode(ctx int64) (result *nest.Node, err e
 	return result, nil
 }
 
+func (this *nestRepository) getPreviousNode(ctx, id int64) (result *nest.Node, err error) {
+	// p.right_value = c.left_value - 1
+	var sb = dbs.NewSelectBuilder()
+	sb.Selects("p.id", "p.ctx", "p.name", "p.left_value", "p.right_value", "p.depth", "p.status", "p.created_on", "p.updated_on")
+	sb.From(this.table, "AS c")
+	sb.LeftJoin(this.table, "AS p ON p.right_value = c.left_value - 1")
+	sb.Where("c.ctx = ?", ctx)
+	sb.Where("c.id = ?", id)
+	sb.Where("p.ctx = ?", ctx)
+	sb.Limit(1)
+	if err = sb.Scan(this.db, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (this *nestRepository) getNextNode(ctx, id int64) (result *nest.Node, err error) {
+	// n.left_value = c.right_value + 1
+	var sb = dbs.NewSelectBuilder()
+	sb.Selects("n.id", "n.ctx", "n.name", "n.left_value", "n.right_value", "n.depth", "n.status", "n.created_on", "n.updated_on")
+	sb.From(this.table, "AS c")
+	sb.LeftJoin(this.table, "AS n ON n.left_value = c.right_value + 1")
+	sb.Where("c.ctx = ?", ctx)
+	sb.Where("c.id = ?", id)
+	sb.Where("n.ctx = ?", ctx)
+	sb.Limit(1)
+	if err = sb.Scan(this.db, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func (this *nestRepository) getNodeList(ctx, pId int64, status nest.Status, depth int, name string, limit, offset int64, withParent bool) (result []*nest.Node, err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id", "c.ctx", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
@@ -161,11 +193,11 @@ func (this *nestRepository) getChildrenIdList(ctx, pId int64, status nest.Status
 	return result, nil
 }
 
-func (this *nestRepository) getPathList(ctx, id int64, status nest.Status, withLastNode bool) (result []*nest.Node, err error) {
+func (this *nestRepository) getPathList(ctx, id int64, status nest.Status, withCurrentNode bool) (result []*nest.Node, err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id", "c.ctx", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
 	sb.From(this.table, "AS sc")
-	if withLastNode {
+	if withCurrentNode {
 		sb.LeftJoin(this.table, "AS c ON c.ctx = sc.ctx AND c.left_value <= sc.left_value AND c.right_value >= sc.right_value")
 	} else {
 		sb.LeftJoin(this.table, "AS c ON c.ctx = sc.ctx AND c.left_value < sc.left_value AND c.right_value > sc.right_value")
