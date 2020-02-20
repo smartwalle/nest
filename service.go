@@ -39,6 +39,8 @@ type Repository interface {
 
 	GetNodeList(ctx, pId int64, status Status, depth int, name string, limit, offset int64, withParent bool) (result []*Node, err error)
 
+	UpdateNodeName(ctx, id int64, name string) (err error)
+
 	UpdateNodeStatus(ctx, id int64, status Status, updateType int) (err error)
 
 	MoveToRoot(ctx, id int64) (err error)
