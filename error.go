@@ -8,4 +8,5 @@ var (
 	ErrParentNotAllowed = errors.New("不满足条件的父节点")
 	ErrUnknownPosition  = errors.New("未知位置")
 	ErrNodeExists       = errors.New("节点已经存在")
+	ErrNotLeafNode      = errors.New("不是叶子节点")
 )

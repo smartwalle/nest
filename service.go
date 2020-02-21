@@ -80,7 +80,7 @@ type Repository interface {
 	// id: 被更新节点的 id；
 	// status: 新的状态；
 	// updateType:
-	// 		0、只更新当前节点的状态，子节点的状态不会受到影响，并且不会改变父子关系；
+	// 		0、更新当前节点的状态，如果有子节点，则不能设置为无效；
 	// 		1、子节点的状态会一起更新，不会改变父子关系；
 	// 		2、子节点的状态不会受到影响，并且所有子节点会向上移动一级（只针对把状态设置为 无效 的时候）；
 	UpdateNodeStatus(ctx, id int64, status Status, updateType int) (err error)

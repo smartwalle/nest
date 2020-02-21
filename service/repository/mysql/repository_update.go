@@ -23,7 +23,7 @@ func (this *nestRepository) updateNodeName(ctx, id int64, name string) (err erro
 // id: 被更新节点的 id
 // status: 新的状态
 // updateType:
-// 		0、只更新当前节点的状态，子节点的状态不会受到影响，并且不会改变父子关系；
+// 		0、更新当前节点的状态，如果有子节点，则不能设置为无效；
 // 		1、子节点的状态会一起更新，不会改变父子关系；
 // 		2、子节点的状态不会受到影响，并且所有子节点会向上移动一级（只针对把状态设置为 无效 的时候）；
 func (this *nestRepository) updateNodeStatus(ctx, id int64, status nest.Status, updateType int) (err error) {
@@ -66,6 +66,16 @@ func (this *nestRepository) updateNodeStatus(ctx, id int64, status nest.Status, 
 			if _, err := ubChild.Exec(this.db); err != nil {
 				return err
 			}
+		} else if status == nest.Enable {
+			var ub = dbs.NewUpdateBuilder()
+			ub.Table(this.table)
+			ub.SET("status", status)
+			ub.SET("updated_on", now)
+			ub.Where("id = ?", id)
+			ub.Limit(1)
+			if _, err := ub.Exec(this.db); err != nil {
+				return err
+			}
 		}
 	case 1:
 		var ub = dbs.NewUpdateBuilder()
@@ -77,11 +87,17 @@ func (this *nestRepository) updateNodeStatus(ctx, id int64, status nest.Status, 
 			return err
 		}
 	case 0:
+		if status == nest.Disable && node.IsLeaf() == false {
+			return nest.ErrNotLeafNode
+		}
 		var ub = dbs.NewUpdateBuilder()
 		ub.Table(this.table)
 		ub.SET("status", status)
 		ub.SET("updated_on", now)
 		ub.Where("id = ?", id)
+		if status == nest.Disable {
+			ub.Where("right_value - left_value = 1")
+		}
 		ub.Limit(1)
 		if _, err := ub.Exec(this.db); err != nil {
 			return err
