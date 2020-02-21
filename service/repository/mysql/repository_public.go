@@ -47,6 +47,14 @@ func (this *nestRepository) GetParent(ctx, id int64) (result *nest.Node, err err
 	return this.getParent(ctx, id, 0)
 }
 
+func (this *nestRepository) GetLastNode(ctx, pId int64) (result *nest.Node, err error) {
+	return this.getLastNode(ctx, pId)
+}
+
+func (this *nestRepository) GetFirstNode(ctx, pId int64) (result *nest.Node, err error) {
+	return this.getFirstNode(ctx, pId)
+}
+
 func (this *nestRepository) GetPreviousNode(ctx, id int64) (result *nest.Node, err error) {
 	return this.getPreviousNode(ctx, id)
 }

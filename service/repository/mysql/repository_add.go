@@ -22,7 +22,7 @@ func (this *nestRepository) addNode(ctx int64, position nest.Position, rId int64
 
 	if position == nest.Root {
 		// 如果是添加顶级节点，那么参照节点为顶级节点列表中的最后一个节点
-		if rNode, err = this.getTheLastRootNode(ctx); err != nil {
+		if rNode, err = this.getLastNode(ctx, 0); err != nil {
 			return 0, err
 		}
 

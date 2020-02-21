@@ -5,13 +5,20 @@ import (
 	"github.com/smartwalle/nest"
 )
 
-// getTheLastRootNode 获取顶层节点列表中的最后一个节点
-func (this *nestRepository) getTheLastRootNode(ctx int64) (result *nest.Node, err error) {
+// getLastNode 获取节点列表中的最后一个节点
+func (this *nestRepository) getLastNode(ctx, pId int64) (result *nest.Node, err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id", "c.ctx", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
 	sb.From(this.table, "AS c")
+	if pId > 0 {
+		sb.LeftJoin(this.table, "AS p ON p.left_value < c.left_value AND p.right_value > c.right_value")
+		sb.Where("p.id = ?", pId)
+		sb.Where("p.ctx = ?", ctx)
+		sb.Where("c.right_value = p.right_value - 1")
+	} else {
+		sb.OrderBy("c.right_value DESC")
+	}
 	sb.Where("c.ctx = ?", ctx)
-	sb.OrderBy("c.right_value DESC")
 	sb.Limit(1)
 	if err = sb.Scan(this.db, &result); err != nil {
 		return nil, err
@@ -19,14 +26,20 @@ func (this *nestRepository) getTheLastRootNode(ctx int64) (result *nest.Node, er
 	return result, nil
 }
 
-// getTheFirstRootNode 获取顶层节点列表中的第一个节点
-func (this *nestRepository) getTheFirstRootNode(ctx int64) (result *nest.Node, err error) {
+// getFirstNode 获取节点列表中的第一个节点
+func (this *nestRepository) getFirstNode(ctx, pId int64) (result *nest.Node, err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id", "c.ctx", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
 	sb.From(this.table, "AS c")
+	if pId > 0 {
+		sb.LeftJoin(this.table, "AS p ON p.left_value < c.left_value AND p.right_value > c.right_value")
+		sb.Where("p.id = ?", pId)
+		sb.Where("p.ctx = ?", ctx)
+		sb.Where("c.left_value = p.left_value + 1")
+	} else {
+		sb.OrderBy("c.left_value ASC")
+	}
 	sb.Where("c.ctx = ?", ctx)
-	sb.Where("c.left_value = ?", 1)
-	sb.OrderBy("c.left_value ASC")
 	sb.Limit(1)
 	if err = sb.Scan(this.db, &result); err != nil {
 		return nil, err
@@ -72,11 +85,12 @@ func (this *nestRepository) getNodeList(ctx, pId int64, status nest.Status, dept
 	sb.From(this.table, "AS c")
 	if pId > 0 {
 		if withParent {
-			sb.LeftJoin(this.table, "AS pc ON pc.ctx = c.ctx AND pc.left_value <= c.left_value AND pc.right_value >= c.right_value")
+			sb.LeftJoin(this.table, "AS pc ON pc.left_value <= c.left_value AND pc.right_value >= c.right_value")
 		} else {
-			sb.LeftJoin(this.table, "AS pc ON pc.ctx = c.ctx AND pc.left_value < c.left_value AND pc.right_value > c.right_value")
+			sb.LeftJoin(this.table, "AS pc ON pc.left_value < c.left_value AND pc.right_value > c.right_value")
 		}
 		sb.Where("pc.id = ?", pId)
+		sb.Where("pc.ctx = ?", ctx)
 	}
 	sb.Where("c.ctx = ?", ctx)
 	if status != nest.Unknown {
@@ -179,11 +193,12 @@ func (this *nestRepository) getChildrenIdList(ctx, pId int64, status nest.Status
 	sb.From(this.table, "AS c")
 	if pId > 0 {
 		if withParent {
-			sb.LeftJoin(this.table, "AS pc ON pc.ctx = c.ctx AND pc.left_value <= c.left_value AND pc.right_value >= c.right_value")
+			sb.LeftJoin(this.table, "AS pc ON pc.left_value <= c.left_value AND pc.right_value >= c.right_value")
 		} else {
-			sb.LeftJoin(this.table, "AS pc ON pc.ctx = c.ctx AND pc.left_value < c.left_value AND pc.right_value > c.right_value")
+			sb.LeftJoin(this.table, "AS pc ON pc.left_value < c.left_value AND pc.right_value > c.right_value")
 		}
 		sb.Where("pc.id = ?", pId)
+		sb.Where("pc.ctx = ?", ctx)
 	}
 	sb.Where("c.ctx = ?", ctx)
 	if status != nest.Unknown {

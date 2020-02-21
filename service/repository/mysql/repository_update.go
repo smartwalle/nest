@@ -130,7 +130,7 @@ func (this *nestRepository) moveNode(position nest.Position, ctx, id, rId int64)
 			return nil
 		}
 		// 如果是顶级节点，那么参照节点为顶级节点列表中的最后一个节点
-		if rNode, err = this.getTheLastRootNode(node.Ctx); err != nil {
+		if rNode, err = this.getLastNode(node.Ctx, 0); err != nil {
 			return err
 		}
 		if rNode != nil && rNode.Id == node.Id {
@@ -177,7 +177,7 @@ func (this *nestRepository) moveNode(position nest.Position, ctx, id, rId int64)
 
 			// 如果父节点不存在，则表示当前节点为顶级节点，则找到顶级节点列表中的第一个节点
 			if rNode == nil {
-				rNode, err = this.getTheFirstRootNode(ctx)
+				rNode, err = this.getFirstNode(ctx, 0)
 				if err != nil {
 					return err
 				}
@@ -203,7 +203,7 @@ func (this *nestRepository) moveNode(position nest.Position, ctx, id, rId int64)
 
 			// 如果父节点不存在，则表示当前节点为顶级节点，则找到顶级节点列表中的最后一个节点
 			if rNode == nil {
-				rNode, err = this.getTheLastRootNode(ctx)
+				rNode, err = this.getLastNode(ctx, 0)
 				if err != nil {
 					return err
 				}
@@ -222,6 +222,10 @@ func (this *nestRepository) moveNode(position nest.Position, ctx, id, rId int64)
 
 	if rNode == nil {
 		return nest.ErrParentNotExist
+	}
+
+	if id == rNode.Id {
+		return nil
 	}
 
 	// 判断被移动节点和目标参照节点是否属于同一 Ctx

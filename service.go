@@ -39,6 +39,12 @@ type Repository interface {
 	// GetParent 获取指定节点的父节点
 	GetParent(ctx, id int64) (result *Node, err error)
 
+	// GetLastNode 获取节点列表中的最后一个节点，如果 pId 小于等于 0，则会返回顶级节点列表中的最后一个节点
+	GetLastNode(ctx, pId int64) (result *Node, err error)
+
+	// GetFirstNode 获取节点列表中的第一个节点，如果 pId 小于等于 0，则会返回顶级节点列表中的第一个节点
+	GetFirstNode(ctx, pId int64) (result *Node, err error)
+
 	// GetPreviousNode 获取相邻的上一节点(前面的节点)
 	GetPreviousNode(ctx, id int64) (result *Node, err error)
 
@@ -65,7 +71,7 @@ type Repository interface {
 
 	// GetNodeList 获取节点列表
 	// ctx: 指定筛选节点的类型；
-	// pId: 父节点id，当此参数的值大于 0 的时候，将忽略 ctx 参数；
+	// pId: 父节点 id；
 	// status: 指定筛选节点的状态；
 	// depth: 指定要获取多少级别内的节点；
 	// name: 模糊匹配 name 字段；
