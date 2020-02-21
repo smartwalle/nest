@@ -104,36 +104,117 @@ func (this *nestRepository) moveNode(position nest.Position, ctx, id, rId int64)
 		return nest.ErrNodeNotExist
 	}
 
-	// 判断参照节点是否存在
-	var refer *nest.Node
-	if position == nest.Root {
+	// 计算参照节点
+	var rNode *nest.Node
+
+	switch position {
+	case nest.Root: // 移动到顶级节点
 		// 如果已经是顶级节点，则直接返回
 		if node.Depth == 1 {
 			return nil
 		}
-		// 如果是顶级节点，那么参照节点为 right value 最大的
-		if refer, err = this.getMaxRightNode(node.Ctx); err != nil {
+		// 如果是顶级节点，那么参照节点为顶级节点列表中的最后一个节点
+		if rNode, err = this.getTheLastRootNode(node.Ctx); err != nil {
 			return err
 		}
-		if refer != nil && refer.Id == node.Id {
+		if rNode != nil && rNode.Id == node.Id {
 			return nil
 		}
-	} else {
-		if refer, err = this.getNodeWithId(ctx, rId); err != nil {
-			return err
+	case nest.Left: // 移动到节点左边
+		if rId <= 0 {
+			// 如果参照节点小于等于 0，则将节点向前移动一位，即向左移动一位
+			if rNode, err = this.getPreviousNode(ctx, id); err != nil {
+				return err
+			}
+			// 如果没有获取到上一个节点，则表示当前节点已经是最左边的节点
+			if rNode == nil {
+				return nil
+			}
+		} else {
+			if rNode, err = this.getNodeWithId(ctx, rId); err != nil {
+				return err
+			}
+		}
+	case nest.Right: // 移动到节点右边
+		if rId <= 0 {
+			// 如果参照节点小于等于 0，则将节点向后移动一位，即向右移动一位
+			if rNode, err = this.getNextNode(ctx, id); err != nil {
+				return err
+			}
+			// 如果没有获取到下一个节点，则表示当前节点已经是最右边的节点
+			if rNode == nil {
+				return nil
+			}
+		} else {
+			if rNode, err = this.getNodeWithId(ctx, rId); err != nil {
+				return err
+			}
+		}
+	case nest.First: // 移动到节点列表头部
+		if rId <= 0 {
+			// 如果参照节点小于等于 0，则将该节点移动到当前所在节点列表的头部
+			// 获取其当前的父节点
+			rNode, err = this.getParent(ctx, id, nest.Unknown)
+			if err != nil {
+				return err
+			}
+
+			// 如果父节点不存在，则表示当前节点为顶级节点，则找到顶级节点列表中的第一个节点
+			if rNode == nil {
+				rNode, err = this.getTheFirstRootNode(ctx)
+				if err != nil {
+					return err
+				}
+				if rNode == nil {
+					return nil
+				}
+				// 并且改变移动的位置类型为移动到指定节点的左边
+				position = nest.Left
+			}
+		} else {
+			if rNode, err = this.getNodeWithId(ctx, rId); err != nil {
+				return err
+			}
+		}
+	case nest.Last: // 移到到节点列表尾部
+		if rId <= 0 {
+			// 如果参照节点小于等于 0，则将该节点移动到当前所在节点列表的尾部
+			// 获取其当前的父节点
+			rNode, err = this.getParent(ctx, id, nest.Unknown)
+			if err != nil {
+				return err
+			}
+
+			// 如果父节点不存在，则表示当前节点为顶级节点，则找到顶级节点列表中的最后一个节点
+			if rNode == nil {
+				rNode, err = this.getTheLastRootNode(ctx)
+				if err != nil {
+					return err
+				}
+				if rNode == nil {
+					return nil
+				}
+				// 并且改变移动的位置类型为移动到指定节点的右边
+				position = nest.Right
+			}
+		} else {
+			if rNode, err = this.getNodeWithId(ctx, rId); err != nil {
+				return err
+			}
 		}
 	}
-	if refer == nil {
+
+	if rNode == nil {
 		return nest.ErrParentNotExist
 	}
 
 	// 判断被移动节点和目标参照节点是否属于同一 Ctx
-	if refer.Ctx != node.Ctx {
+	if rNode.Ctx != node.Ctx {
 		return nest.ErrParentNotAllowed
 	}
 
 	// 循环连接问题，即 参照节点 是 被移动节点 的子节点
-	if refer.LeftValue > node.LeftValue && refer.RightValue < node.RightValue {
+	if rNode.LeftValue > node.LeftValue && rNode.RightValue < node.RightValue {
 		return nest.ErrParentNotAllowed
 	}
 
@@ -145,7 +226,7 @@ func (this *nestRepository) moveNode(position nest.Position, ctx, id, rId int64)
 
 	// 查询出被移动节点的所有子节点
 	//children, err := this.getNodeList(node.Id, 0, 0)
-	children, err := this.getNodeList(node.Ctx, node.Id, 0, 0, "", 0, 0, true)
+	children, err := this.getNodeList(node.Ctx, node.Id, nest.Unknown, 0, "", 0, 0, true)
 	if err != nil {
 		return err
 	}
@@ -156,13 +237,13 @@ func (this *nestRepository) moveNode(position nest.Position, ctx, id, rId int64)
 		updateIdList = append(updateIdList, c.Id)
 	}
 
-	if err = this.moveNodeWithPosition(position, node, refer, updateIdList); err != nil {
+	if err = this.moveNodeWithPosition(position, node, rNode, updateIdList); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (this *nestRepository) moveNodeWithPosition(position nest.Position, node, refer *nest.Node, updateIdList []int64) (err error) {
+func (this *nestRepository) moveNodeWithPosition(position nest.Position, node, rNode *nest.Node, updateIdList []int64) (err error) {
 	var nodeLen = node.RightValue - node.LeftValue + 1
 	var now = time.Now()
 
@@ -184,24 +265,24 @@ func (this *nestRepository) moveNodeWithPosition(position nest.Position, node, r
 		return err
 	}
 
-	if refer.LeftValue > node.RightValue {
-		refer.LeftValue -= nodeLen
+	if rNode.LeftValue > node.RightValue {
+		rNode.LeftValue -= nodeLen
 	}
-	if refer.RightValue > node.RightValue {
-		refer.RightValue -= nodeLen
+	if rNode.RightValue > node.RightValue {
+		rNode.RightValue -= nodeLen
 	}
 
 	switch position {
 	case nest.Root:
-		return this.moveToRight(node, refer, updateIdList, nodeLen)
+		return this.moveToRight(node, rNode, updateIdList, nodeLen)
 	case nest.First:
-		return this.moveToFirst(node, refer, updateIdList, nodeLen)
+		return this.moveToFirst(node, rNode, updateIdList, nodeLen)
 	case nest.Last:
-		return this.moveToLast(node, refer, updateIdList, nodeLen)
+		return this.moveToLast(node, rNode, updateIdList, nodeLen)
 	case nest.Left:
-		return this.moveToLeft(node, refer, updateIdList, nodeLen)
+		return this.moveToLeft(node, rNode, updateIdList, nodeLen)
 	case nest.Right:
-		return this.moveToRight(node, refer, updateIdList, nodeLen)
+		return this.moveToRight(node, rNode, updateIdList, nodeLen)
 	}
 	return nest.ErrUnknownPosition
 }
@@ -292,7 +373,7 @@ func (this *nestRepository) moveToLast(node, parent *nest.Node, updateIdList []i
 	return nil
 }
 
-func (this *nestRepository) moveToLeft(node, refer *nest.Node, updateIdList []int64, nodeLen int) (err error) {
+func (this *nestRepository) moveToLeft(node, rNode *nest.Node, updateIdList []int64, nodeLen int) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
@@ -300,7 +381,7 @@ func (this *nestRepository) moveToLeft(node, refer *nest.Node, updateIdList []in
 	ubTreeLeft.Table(this.table)
 	ubTreeLeft.SET("left_value", dbs.SQL("left_value + ?", nodeLen))
 	ubTreeLeft.SET("updated_on", now)
-	ubTreeLeft.Where("ctx = ? AND left_value >= ?", refer.Ctx, refer.LeftValue)
+	ubTreeLeft.Where("ctx = ? AND left_value >= ?", rNode.Ctx, rNode.LeftValue)
 	ubTreeLeft.Where(dbs.NotIn("id", updateIdList))
 	if _, err = ubTreeLeft.Exec(this.db); err != nil {
 		return err
@@ -310,7 +391,7 @@ func (this *nestRepository) moveToLeft(node, refer *nest.Node, updateIdList []in
 	ubTreeRight.Table(this.table)
 	ubTreeRight.SET("right_value", dbs.SQL("right_value + ?", nodeLen))
 	ubTreeRight.SET("updated_on", now)
-	ubTreeRight.Where("ctx = ? AND right_value >= ?", refer.Ctx, refer.LeftValue)
+	ubTreeRight.Where("ctx = ? AND right_value >= ?", rNode.Ctx, rNode.LeftValue)
 	ubTreeRight.Where(dbs.NotIn("id", updateIdList))
 	if _, err = ubTreeRight.Exec(this.db); err != nil {
 		return err
@@ -319,8 +400,8 @@ func (this *nestRepository) moveToLeft(node, refer *nest.Node, updateIdList []in
 	//refer.LeftValue += nodeLen
 
 	// 更新被移动节点的信息
-	var diff = node.LeftValue - refer.LeftValue
-	var diffDepth = refer.Depth - node.Depth
+	var diff = node.LeftValue - rNode.LeftValue
+	var diffDepth = rNode.Depth - node.Depth
 	var ubTree = dbs.NewUpdateBuilder()
 	ubTree.Table(this.table)
 	ubTree.SET("left_value", dbs.SQL("left_value - ?", diff))
@@ -335,7 +416,7 @@ func (this *nestRepository) moveToLeft(node, refer *nest.Node, updateIdList []in
 	return nil
 }
 
-func (this *nestRepository) moveToRight(node, refer *nest.Node, updateIdList []int64, nodeLen int) (err error) {
+func (this *nestRepository) moveToRight(node, rNode *nest.Node, updateIdList []int64, nodeLen int) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
@@ -343,7 +424,7 @@ func (this *nestRepository) moveToRight(node, refer *nest.Node, updateIdList []i
 	ubTreeLeft.Table(this.table)
 	ubTreeLeft.SET("left_value", dbs.SQL("left_value + ?", nodeLen))
 	ubTreeLeft.SET("updated_on", now)
-	ubTreeLeft.Where("ctx = ? AND left_value > ?", refer.Ctx, refer.RightValue)
+	ubTreeLeft.Where("ctx = ? AND left_value > ?", rNode.Ctx, rNode.RightValue)
 	ubTreeLeft.Where(dbs.NotIn("id", updateIdList))
 	if _, err = ubTreeLeft.Exec(this.db); err != nil {
 		return err
@@ -353,15 +434,15 @@ func (this *nestRepository) moveToRight(node, refer *nest.Node, updateIdList []i
 	ubTreeRight.Table(this.table)
 	ubTreeRight.SET("right_value", dbs.SQL("right_value + ?", nodeLen))
 	ubTreeRight.SET("updated_on", now)
-	ubTreeRight.Where("ctx = ? AND right_value > ?", refer.Ctx, refer.RightValue)
+	ubTreeRight.Where("ctx = ? AND right_value > ?", rNode.Ctx, rNode.RightValue)
 	ubTreeRight.Where(dbs.NotIn("id", updateIdList))
 	if _, err = ubTreeRight.Exec(this.db); err != nil {
 		return err
 	}
 
 	// 更新被移动节点的信息
-	var diff = node.LeftValue - refer.RightValue - 1
-	var diffDepth = refer.Depth - node.Depth
+	var diff = node.LeftValue - rNode.RightValue - 1
+	var diffDepth = rNode.Depth - node.Depth
 	var ubTree = dbs.NewUpdateBuilder()
 	ubTree.Table(this.table)
 	ubTree.SET("left_value", dbs.SQL("left_value - ?", diff))

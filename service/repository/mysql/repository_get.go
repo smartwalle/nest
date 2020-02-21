@@ -5,12 +5,28 @@ import (
 	"github.com/smartwalle/nest"
 )
 
-func (this *nestRepository) getMaxRightNode(ctx int64) (result *nest.Node, err error) {
+// getTheLastRootNode 获取顶层节点列表中的最后一个节点
+func (this *nestRepository) getTheLastRootNode(ctx int64) (result *nest.Node, err error) {
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id", "c.ctx", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
 	sb.From(this.table, "AS c")
 	sb.Where("c.ctx = ?", ctx)
 	sb.OrderBy("c.right_value DESC")
+	sb.Limit(1)
+	if err = sb.Scan(this.db, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// getTheFirstRootNode 获取顶层节点列表中的第一个节点
+func (this *nestRepository) getTheFirstRootNode(ctx int64) (result *nest.Node, err error) {
+	var sb = dbs.NewSelectBuilder()
+	sb.Selects("c.id", "c.ctx", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
+	sb.From(this.table, "AS c")
+	sb.Where("c.ctx = ?", ctx)
+	sb.Where("c.left_value = ?", 1)
+	sb.OrderBy("c.left_value ASC")
 	sb.Limit(1)
 	if err = sb.Scan(this.db, &result); err != nil {
 		return nil, err
@@ -63,7 +79,7 @@ func (this *nestRepository) getNodeList(ctx, pId int64, status nest.Status, dept
 		sb.Where("pc.id = ?", pId)
 	}
 	sb.Where("c.ctx = ?", ctx)
-	if status > 0 {
+	if status != nest.Unknown {
 		sb.Where("c.status = ?", status)
 	}
 	if depth > 0 {
@@ -170,7 +186,7 @@ func (this *nestRepository) getChildrenIdList(ctx, pId int64, status nest.Status
 		sb.Where("pc.id = ?", pId)
 	}
 	sb.Where("c.ctx = ?", ctx)
-	if status > 0 {
+	if status != nest.Unknown {
 		sb.Where("c.status = ?", status)
 	}
 	if depth > 0 {
@@ -204,7 +220,7 @@ func (this *nestRepository) getPathList(ctx, id int64, status nest.Status, withC
 	}
 	sb.Where("sc.id = ?", id)
 	sb.Where("sc.ctx = ?", ctx)
-	if status > 0 {
+	if status != nest.Unknown {
 		sb.Where("c.status = ?", status)
 	}
 	sb.OrderBy("c.left_value")
@@ -221,7 +237,7 @@ func (this *nestRepository) getParent(ctx, id int64, status nest.Status) (result
 	sb.LeftJoin(this.table, "AS c ON c.ctx = sc.ctx AND c.left_value < sc.left_value AND c.right_value > sc.right_value")
 	sb.Where("sc.id = ?", id)
 	sb.Where("c.ctx = ?", ctx)
-	if status > 0 {
+	if status != nest.Unknown {
 		sb.Where("c.status = ?", status)
 	}
 	sb.Limit(1)

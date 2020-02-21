@@ -5,6 +5,7 @@ import "time"
 type Status int
 
 const (
+	Unknown Status = 0 // 未知
 	Enable  Status = 1 // 启用
 	Disable Status = 2 // 禁用
 )

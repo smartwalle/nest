@@ -104,55 +104,19 @@ func (this *nestRepository) MoveToLast(ctx, id, pId int64) (err error) {
 }
 
 func (this *nestRepository) MoveToLeft(ctx, id, rId int64) (err error) {
-	if rId <= 0 {
-		return this.MoveUp(ctx, id)
-	}
 	return this.moveNode(nest.Left, ctx, id, rId)
 }
 
 func (this *nestRepository) MoveToRight(ctx, id, rId int64) (err error) {
-	if rId <= 0 {
-		return this.MoveDown(ctx, id)
-	}
 	return this.moveNode(nest.Right, ctx, id, rId)
 }
 
 func (this *nestRepository) MoveUp(ctx, id int64) (err error) {
-	node, err := this.getNodeWithId(ctx, id)
-	if err != nil {
-		return err
-	}
-	if node == nil {
-		return nest.ErrNodeNotExist
-	}
-
-	rNode, err := this.getPreviousNode(ctx, id)
-	if err != nil {
-		return err
-	}
-	if rNode == nil {
-		return nest.ErrAlreadyFirstNode
-	}
-	return this.moveNode(nest.Left, ctx, id, rNode.Id)
+	return this.moveNode(nest.Left, ctx, id, 0)
 }
 
 func (this *nestRepository) MoveDown(ctx, id int64) (err error) {
-	node, err := this.getNodeWithId(ctx, id)
-	if err != nil {
-		return err
-	}
-	if node == nil {
-		return nest.ErrNodeNotExist
-	}
-
-	rNode, err := this.getNextNode(ctx, id)
-	if err != nil {
-		return err
-	}
-	if rNode == nil {
-		return nest.ErrAlreadyLastNode
-	}
-	return this.moveNode(nest.Right, ctx, id, rNode.Id)
+	return this.moveNode(nest.Right, ctx, id, 0)
 }
 
 func (this *nestRepository) MoveTo(ctx, id, rId int64, position nest.Position) (err error) {

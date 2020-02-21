@@ -69,7 +69,7 @@ type Repository interface {
 	// status: 指定筛选节点的状态；
 	// depth: 指定要获取多少级别内的节点；
 	// name: 模糊匹配 name 字段；
-	// limit: 返回多少条数据；
+	// limit: 返回数据数量；
 	// withParent: 如果有传递 pId 参数，将可以通过此参数设定是否需要返回 pId 对应的节点信息；
 	GetNodeList(ctx, pId int64, status Status, depth int, name string, limit, offset int64, withParent bool) (result []*Node, err error)
 
@@ -85,17 +85,15 @@ type Repository interface {
 	// 		2、子节点的状态不会受到影响，并且所有子节点会向上移动一级（只针对把状态设置为 无效 的时候）；
 	UpdateNodeStatus(ctx, id int64, status Status, updateType int) (err error)
 
-	// MoveToRoot 将指定节点移动到最顶层
+	// MoveToRoot 将指定节点调整为顶级节点
 	MoveToRoot(ctx, id int64) (err error)
 
-	// TODO xxx
 	// MoveToFirst 将节点调整为指定节点的子节点，并将该节点作为指定节点列表的第一个节点
-	// 如果 pId 参数的值小于等于 0，则将该节点移动到当前所在节点列表的头部
+	// 如果 pId 参数的值小于等于 0，则将该节点移动到其当前所在节点列表的头部
 	MoveToFirst(ctx, id, pId int64) (err error)
 
-	// TODO xxx
 	// MoveToLast 将节点调整为指定节点的子节点，并将该节点作为指定节点列表的最后一个节点
-	// 如果 pId 参数的值小于等于 0，则将该节点移动到当前所在节点列表的尾部
+	// 如果 pId 参数的值小于等于 0，则将该节点移动到其当前所在节点列表的尾部
 	MoveToLast(ctx, id, pId int64) (err error)
 
 	// MoveToLeft 将节点调整为指定节点的兄弟节点，并将该节点位于指定节点的左边(前面)
