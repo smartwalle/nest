@@ -7,3 +7,5 @@ github.com/smartwalle/dbs v1.0.0/go.mod h1:sTVYj2+GAmxGxTF88LR38dc57SA5Pr9/Uk2EP
 github.com/smartwalle/dbs v1.1.0/go.mod h1:xyi9/eSQUcRF55Se7y59izm/r1zpAUXYzJkrYEg0p8w=
 github.com/smartwalle/dbs v1.1.4 h1:2UzDWAYQa5ext34n6tPZgFfMHmlLDwQHrql1+RYIro0=
 github.com/smartwalle/dbs v1.1.4/go.mod h1:xyi9/eSQUcRF55Se7y59izm/r1zpAUXYzJkrYEg0p8w=
+github.com/smartwalle/dbs v1.1.6 h1:9pZu78s2yX49iSh7K20ihxXWFAOENb1nqrQ/hNgJXeU=
+github.com/smartwalle/dbs v1.1.6/go.mod h1:xyi9/eSQUcRF55Se7y59izm/r1zpAUXYzJkrYEg0p8w=
