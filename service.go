@@ -10,10 +10,10 @@ type Repository interface {
 	// AddRoot 添加顶级节点
 	AddRoot(ctx int64, name string, status Status) (result int64, err error)
 
-	// AddToFirst 添加子节点，新添加的子节点位于子节点列表的最前面
+	// AddToFirst 添加子节点，新添加的子节点位于 pId 子节点列表的头部
 	AddToFirst(ctx, pId int64, name string, status Status) (result int64, err error)
 
-	// AddToLast 添加子节点，新添加的子节点位于子节点列表的最后面
+	// AddToLast 添加子节点，新添加的子节点位于 pId 子节点列表的尾部
 	AddToLast(ctx, pId int64, name string, status Status) (result int64, err error)
 
 	// AddToLeft 添加兄弟节点，新添加的节点位于指定节点的左边(前面)
@@ -88,18 +88,22 @@ type Repository interface {
 	// MoveToRoot 将指定节点移动到最顶层
 	MoveToRoot(ctx, id int64) (err error)
 
+	// TODO xxx
 	// MoveToFirst 将节点调整为指定节点的子节点，并将该节点作为指定节点列表的第一个节点
+	// 如果 pId 参数的值小于等于 0，则将该节点移动到当前所在节点列表的头部
 	MoveToFirst(ctx, id, pId int64) (err error)
 
+	// TODO xxx
 	// MoveToLast 将节点调整为指定节点的子节点，并将该节点作为指定节点列表的最后一个节点
+	// 如果 pId 参数的值小于等于 0，则将该节点移动到当前所在节点列表的尾部
 	MoveToLast(ctx, id, pId int64) (err error)
 
 	// MoveToLeft 将节点调整为指定节点的兄弟节点，并将该节点位于指定节点的左边(前面)
-	// 如果 rId 参数小于等于 0，则本方法的作用与方法 MoveUp 一致
+	// 如果 rId 参数的值小于等于 0，则将节点向前移动一位，即向左移动一位
 	MoveToLeft(ctx, id, rId int64) (err error)
 
 	// MoveToRight 将节点调整为指定节点的兄弟节点，并将该节点位于指定节点的右边(后面)
-	// 如果 rId 参数小于等于 0，则本方法的作用与方法 MoveDown 一致
+	// 如果 rId 参数的值小于等于 0，则将节点向后移动一位，即向右移动一位
 	MoveToRight(ctx, id, rId int64) (err error)
 
 	// MoveUp 将节点向前移动一位，即向左移动一位
