@@ -12,7 +12,7 @@ func (this *nestRepository) removeNode(ctx, id int64) (err error) {
 		return err
 	}
 
-	if node == nil || node.Status == kDelete {
+	if node == nil {
 		return nest.ErrNodeNotExist
 	}
 

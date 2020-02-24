@@ -179,15 +179,13 @@ func (this *nestRepository) moveNode(position nest.Position, ctx, id, rId int64)
 		if rId <= 0 {
 			// 如果参照节点小于等于 0，则将该节点移动到当前所在节点列表的头部
 			// 获取其当前的父节点
-			rNode, err = this.getParent(ctx, id, nest.All)
-			if err != nil {
+			if rNode, err = this.getParent(ctx, id, nest.All); err != nil {
 				return err
 			}
 
 			// 如果父节点不存在，则表示当前节点为顶级节点，则找到顶级节点列表中的第一个节点
 			if rNode == nil {
-				rNode, err = this.getFirstNode(ctx, 0)
-				if err != nil {
+				if rNode, err = this.getFirstNode(ctx, 0); err != nil {
 					return err
 				}
 				if rNode == nil {
@@ -205,15 +203,13 @@ func (this *nestRepository) moveNode(position nest.Position, ctx, id, rId int64)
 		if rId <= 0 {
 			// 如果参照节点小于等于 0，则将该节点移动到当前所在节点列表的尾部
 			// 获取其当前的父节点
-			rNode, err = this.getParent(ctx, id, nest.All)
-			if err != nil {
+			if rNode, err = this.getParent(ctx, id, nest.All); err != nil {
 				return err
 			}
 
 			// 如果父节点不存在，则表示当前节点为顶级节点，则找到顶级节点列表中的最后一个节点
 			if rNode == nil {
-				rNode, err = this.getLastNode(ctx, 0)
-				if err != nil {
+				if rNode, err = this.getLastNode(ctx, 0); err != nil {
 					return err
 				}
 				if rNode == nil {
