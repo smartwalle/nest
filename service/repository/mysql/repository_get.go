@@ -97,7 +97,7 @@ func (this *nestRepository) getNodeList(ctx, pId int64, status nest.Status, dept
 		sb.Where("pc.ctx = ?", ctx)
 	}
 	sb.Where("c.ctx = ?", ctx)
-	if status != nest.Unknown && status != kDelete {
+	if status != nest.All && status != kDelete {
 		sb.Where("c.status = ?", status)
 	} else {
 		sb.Where("c.status != ?", kDelete)
@@ -208,7 +208,7 @@ func (this *nestRepository) getChildrenIdList(ctx, pId int64, status nest.Status
 		sb.Where("pc.ctx = ?", ctx)
 	}
 	sb.Where("c.ctx = ?", ctx)
-	if status != nest.Unknown && status != kDelete {
+	if status != nest.All && status != kDelete {
 		sb.Where("c.status = ?", status)
 	} else {
 		sb.Where("c.status != ?", kDelete)
@@ -245,7 +245,7 @@ func (this *nestRepository) getPathList(ctx, id int64, status nest.Status, withC
 	sb.Where("sc.id = ?", id)
 	sb.Where("sc.ctx = ?", ctx)
 	sb.Where("sc.status != ?", kDelete)
-	if status != nest.Unknown && status != kDelete {
+	if status != nest.All && status != kDelete {
 		sb.Where("c.status = ?", status)
 	} else {
 		sb.Where("c.status != ?", kDelete)
@@ -265,7 +265,7 @@ func (this *nestRepository) getParent(ctx, id int64, status nest.Status) (result
 	sb.Where("sc.id = ?", id)
 	sb.Where("sc.status != ?", kDelete)
 	sb.Where("c.ctx = ?", ctx)
-	if status != nest.Unknown && status != kDelete {
+	if status != nest.All && status != kDelete {
 		sb.Where("c.status = ?", status)
 	} else {
 		sb.Where("c.status != ?", kDelete)

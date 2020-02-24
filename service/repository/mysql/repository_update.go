@@ -179,7 +179,7 @@ func (this *nestRepository) moveNode(position nest.Position, ctx, id, rId int64)
 		if rId <= 0 {
 			// 如果参照节点小于等于 0，则将该节点移动到当前所在节点列表的头部
 			// 获取其当前的父节点
-			rNode, err = this.getParent(ctx, id, nest.Unknown)
+			rNode, err = this.getParent(ctx, id, nest.All)
 			if err != nil {
 				return err
 			}
@@ -205,7 +205,7 @@ func (this *nestRepository) moveNode(position nest.Position, ctx, id, rId int64)
 		if rId <= 0 {
 			// 如果参照节点小于等于 0，则将该节点移动到当前所在节点列表的尾部
 			// 获取其当前的父节点
-			rNode, err = this.getParent(ctx, id, nest.Unknown)
+			rNode, err = this.getParent(ctx, id, nest.All)
 			if err != nil {
 				return err
 			}
@@ -255,7 +255,7 @@ func (this *nestRepository) moveNode(position nest.Position, ctx, id, rId int64)
 
 	// 查询出被移动节点的所有子节点
 	//children, err := this.getNodeList(node.Id, 0, 0)
-	children, err := this.getNodeList(node.Ctx, node.Id, nest.Unknown, 0, "", 0, 0, true)
+	children, err := this.getNodeList(node.Ctx, node.Id, nest.All, 0, "", 0, 0, true)
 	if err != nil {
 		return err
 	}

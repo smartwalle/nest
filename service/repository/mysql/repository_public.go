@@ -47,7 +47,7 @@ func (this *nestRepository) GetNodeWithName(ctx int, name string) (result *nest.
 }
 
 func (this *nestRepository) GetParent(ctx, id int64) (result *nest.Node, err error) {
-	return this.getParent(ctx, id, nest.Unknown)
+	return this.getParent(ctx, id, nest.All)
 }
 
 func (this *nestRepository) GetLastNode(ctx, pId int64) (result *nest.Node, err error) {
