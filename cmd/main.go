@@ -13,17 +13,57 @@ func main() {
 	var m = mysql.NewRepository(db, "xd")
 
 	var ctx int64 = 1
-	m.AddRoot(ctx, "新闻分类", nest.Enable)
-	m.AddToLast(ctx, 1, "体育", nest.Enable)
-	m.AddToLast(ctx, 1, "娱乐", nest.Enable)
-	m.AddToLast(ctx, 1, "亲子", nest.Enable)
-	m.AddToLast(ctx, 1, "时尚", nest.Enable)
-	m.AddToLast(ctx, 1, "艺术", nest.Enable)
-	m.AddToLast(ctx, 1, "星座", nest.Enable)
-	m.AddToLast(ctx, 1, "教育", nest.Enable)
-	m.AddToLast(ctx, 2, "足球", nest.Enable)
-	m.AddToLast(ctx, 2, "篮球", nest.Enable)
-	m.AddToLast(ctx, 2, "田径", nest.Enable)
+
+	m.UpdateNodeStatus(ctx, 11, nest.Enable)
+
+	//var nId int64 = 0
+	//-----
+	//nId, _ = m.AddRoot(ctx, "新闻分类", nest.Enable)
+	//sId, _ := m.AddToLast(ctx, nId, "体育", nest.Enable)
+	//
+	//m.AddToLast(ctx, sId, "足球", nest.Enable)
+	//m.AddToLast(ctx, sId, "篮球", nest.Enable)
+	//m.AddToLast(ctx, sId, "排球", nest.Enable)
+	//
+	//m.AddToLast(ctx, nId, "时尚", nest.Enable)
+	//m.AddToLast(ctx, nId, "亲子", nest.Enable)
+	//m.AddToLast(ctx, nId, "艺术", nest.Enable)
+	//m.AddToLast(ctx, nId, "星座", nest.Enable)
+	//m.AddToLast(ctx, nId, "教育", nest.Enable)
+	//
+	////-----
+	//nId, _ = m.AddRoot(ctx, "物品分类", nest.Enable)
+	//
+	//m.AddToFirst(ctx, nId, "电子产品", nest.Enable)
+	//m.AddToFirst(ctx, nId, "学习用具", nest.Enable)
+	//
+	////-----
+	//nId, _ = m.AddRoot(ctx, "音乐分类", nest.Enable)
+	//
+	//m.AddToFirst(ctx, nId, "摇滚", nest.Enable)
+	//m.AddToLast(ctx, nId, "流行", nest.Enable)
+	//m.AddToLast(ctx, nId, "乡村", nest.Enable)
+	//
+	////-----
+	//nId, _ = m.AddRoot(ctx, "电影分类", nest.Enable)
+	//
+	//m.AddToLast(ctx, nId, "悬疑", nest.Enable)
+	//m.AddToLast(ctx, nId, "动作", nest.Enable)
+
+	//m.AddRoot(ctx, "新闻分类", nest.Enable)
+	//m.AddToLast(ctx, 1, "体育", nest.Enable)
+	//m.AddToLast(ctx, 1, "娱乐", nest.Enable)
+	//m.AddToLast(ctx, 1, "亲子", nest.Enable)
+	//m.AddToLast(ctx, 1, "时尚", nest.Enable)
+	//m.AddToLast(ctx, 1, "艺术", nest.Enable)
+	//m.AddToLast(ctx, 1, "星座", nest.Enable)
+	//m.AddToLast(ctx, 1, "教育", nest.Enable)
+	//m.AddToLast(ctx, 2, "足球", nest.Enable)
+	//m.AddToLast(ctx, 2, "篮球", nest.Enable)
+	//m.AddToLast(ctx, 2, "田径", nest.Enable)
+
+	//fmt.Println(m.GetLastNode(ctx,2))
+	//fmt.Println(m.GetFirstNode(ctx,2))
 
 	//fmt.Println(m.MoveToRoot(ctx, 11))
 	//fmt.Println(m.MoveToLast(ctx, 11, 0))
@@ -46,6 +86,8 @@ func main() {
 	//m.AddToLastWithId(ctx, 19, 17, "男装", nest.Enable)
 	//m.AddToLastWithId(ctx, 20, 17, "童装", nest.Enable)
 
+	//m.MoveToLast(ctx, 11, 1)
+
 	var nodeList, err = m.GetNodeList(ctx, 0, nest.Enable, 0, "", 0, 0, false)
 	fmt.Println(err)
 
@@ -55,4 +97,14 @@ func main() {
 		}
 		fmt.Println(node.Ctx, node.Id, node.IsLeaf(), node.Name, node.LeftValue, node.RightValue)
 	}
+	//
+	//nodeList, err = m.GetNodeList(ctx, 0, nest.Enable, 0, "", 0, 0, false)
+	//fmt.Println(err)
+	//
+	//for _, node := range nodeList {
+	//	for i := 0; i < node.Depth; i++ {
+	//		fmt.Print("-")
+	//	}
+	//	fmt.Println(node.Ctx, node.Id, node.IsLeaf(), node.Name, node.LeftValue, node.RightValue)
+	//}
 }

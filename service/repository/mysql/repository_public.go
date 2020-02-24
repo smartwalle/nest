@@ -5,23 +5,23 @@ import (
 )
 
 func (this *nestRepository) AddRoot(ctx int64, name string, status nest.Status) (result int64, err error) {
-	return this.addNode(ctx, nest.Root, 0, name, status)
+	return this.AddNode(ctx, nest.Root, 0, name, status)
 }
 
 func (this *nestRepository) AddToFirst(ctx, pId int64, name string, status nest.Status) (result int64, err error) {
-	return this.addNode(ctx, nest.First, pId, name, status)
+	return this.AddNode(ctx, nest.First, pId, name, status)
 }
 
 func (this *nestRepository) AddToLast(ctx, pId int64, name string, status nest.Status) (result int64, err error) {
-	return this.addNode(ctx, nest.Last, pId, name, status)
+	return this.AddNode(ctx, nest.Last, pId, name, status)
 }
 
 func (this *nestRepository) AddToLeft(ctx, rId int64, name string, status nest.Status) (result int64, err error) {
-	return this.addNode(ctx, nest.Left, rId, name, status)
+	return this.AddNode(ctx, nest.Left, rId, name, status)
 }
 
 func (this *nestRepository) AddToRight(ctx, rId int64, name string, status nest.Status) (result int64, err error) {
-	return this.addNode(ctx, nest.Right, rId, name, status)
+	return this.AddNode(ctx, nest.Right, rId, name, status)
 }
 
 func (this *nestRepository) AddNode(ctx int64, position nest.Position, rId int64, name string, status nest.Status) (result int64, err error) {
@@ -31,6 +31,9 @@ func (this *nestRepository) AddNode(ctx int64, position nest.Position, rId int64
 		position != nest.Left &&
 		position != nest.Right {
 		return 0, nest.ErrUnknownPosition
+	}
+	if status != nest.Enable && status != nest.Disable {
+		return 0, nest.ErrUnknownStatus
 	}
 	return this.addNode(ctx, position, rId, name, status)
 }
@@ -44,7 +47,7 @@ func (this *nestRepository) GetNodeWithName(ctx int, name string) (result *nest.
 }
 
 func (this *nestRepository) GetParent(ctx, id int64) (result *nest.Node, err error) {
-	return this.getParent(ctx, id, 0)
+	return this.getParent(ctx, id, nest.Unknown)
 }
 
 func (this *nestRepository) GetLastNode(ctx, pId int64) (result *nest.Node, err error) {
@@ -95,8 +98,11 @@ func (this *nestRepository) UpdateNodeName(ctx, id int64, name string) (err erro
 	return this.updateNodeName(ctx, id, name)
 }
 
-func (this *nestRepository) UpdateNodeStatus(ctx, id int64, status nest.Status, updateType int) (err error) {
-	return this.updateNodeStatus(ctx, id, status, updateType)
+func (this *nestRepository) UpdateNodeStatus(ctx, id int64, status nest.Status) (err error) {
+	if status != nest.Enable && status != nest.Disable {
+		return nest.ErrUnknownStatus
+	}
+	return this.updateNodeStatus(ctx, id, status, 1)
 }
 
 func (this *nestRepository) MoveToRoot(ctx, id int64) (err error) {
@@ -129,4 +135,8 @@ func (this *nestRepository) MoveDown(ctx, id int64) (err error) {
 
 func (this *nestRepository) MoveTo(ctx, id, rId int64, position nest.Position) (err error) {
 	return this.moveNode(position, ctx, id, rId)
+}
+
+func (this *nestRepository) RemoveNode(ctx, id int64) (err error) {
+	return this.removeNode(ctx, id)
 }

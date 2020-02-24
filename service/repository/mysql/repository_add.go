@@ -83,6 +83,7 @@ func (this *nestRepository) insertNodeToFirst(rNode *nest.Node, name string, sta
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", rNode.Ctx, rNode.LeftValue)
+	ubLeft.Where("status != ?", kDelete)
 	if _, err = ubLeft.Exec(this.db); err != nil {
 		return 0, err
 	}
@@ -92,6 +93,7 @@ func (this *nestRepository) insertNodeToFirst(rNode *nest.Node, name string, sta
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value > ?", rNode.Ctx, rNode.LeftValue)
+	ubRight.Where("status != ?", kDelete)
 	if _, err = ubRight.Exec(this.db); err != nil {
 		return 0, err
 	}
@@ -108,6 +110,7 @@ func (this *nestRepository) insertNodeToLast(rNode *nest.Node, name string, stat
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", rNode.Ctx, rNode.RightValue)
+	ubLeft.Where("status != ?", kDelete)
 	if _, err = ubLeft.Exec(this.db); err != nil {
 		return 0, err
 	}
@@ -117,6 +120,7 @@ func (this *nestRepository) insertNodeToLast(rNode *nest.Node, name string, stat
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value >= ?", rNode.Ctx, rNode.RightValue)
+	ubRight.Where("status != ?", kDelete)
 	if _, err = ubRight.Exec(this.db); err != nil {
 		return 0, err
 	}
@@ -134,6 +138,7 @@ func (this *nestRepository) insertNodeToLeft(rNode *nest.Node, name string, stat
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value >= ?", rNode.Ctx, rNode.LeftValue)
+	ubLeft.Where("status != ?", kDelete)
 	if _, err = ubLeft.Exec(this.db); err != nil {
 		return 0, err
 	}
@@ -143,6 +148,7 @@ func (this *nestRepository) insertNodeToLeft(rNode *nest.Node, name string, stat
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value >= ?", rNode.Ctx, rNode.LeftValue)
+	ubRight.Where("status != ?", kDelete)
 	if _, err = ubRight.Exec(this.db); err != nil {
 		return 0, err
 	}
@@ -159,6 +165,7 @@ func (this *nestRepository) insertNodeToRight(rNode *nest.Node, name string, sta
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", rNode.Ctx, rNode.RightValue)
+	ubLeft.Where("status != ?", kDelete)
 	if _, err = ubLeft.Exec(this.db); err != nil {
 		return 0, err
 	}
@@ -168,6 +175,7 @@ func (this *nestRepository) insertNodeToRight(rNode *nest.Node, name string, sta
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value > ?", rNode.Ctx, rNode.RightValue)
+	ubRight.Where("status != ?", kDelete)
 	if _, err = ubRight.Exec(this.db); err != nil {
 		return 0, err
 	}

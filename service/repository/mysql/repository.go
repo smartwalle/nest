@@ -6,6 +6,8 @@ import (
 	"github.com/smartwalle/nest"
 )
 
+const kDelete nest.Status = -1 // 删除
+
 type nestRepository struct {
 	db    dbs.DB
 	table string

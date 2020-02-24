@@ -11,7 +11,7 @@ func (this *nestRepository) getLastNode(ctx, pId int64) (result *nest.Node, err 
 	sb.Selects("c.id", "c.ctx", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
 	sb.From(this.table, "AS c")
 	if pId > 0 {
-		sb.LeftJoin(this.table, "AS p ON p.left_value < c.left_value AND p.right_value > c.right_value")
+		sb.LeftJoin(this.table, "AS p ON p.status != ? AND p.left_value < c.left_value AND p.right_value > c.right_value", kDelete)
 		sb.Where("p.id = ?", pId)
 		sb.Where("p.ctx = ?", ctx)
 		sb.Where("c.right_value = p.right_value - 1")
@@ -19,6 +19,7 @@ func (this *nestRepository) getLastNode(ctx, pId int64) (result *nest.Node, err 
 		sb.OrderBy("c.right_value DESC")
 	}
 	sb.Where("c.ctx = ?", ctx)
+	sb.Where("c.status != ?", kDelete)
 	sb.Limit(1)
 	if err = sb.Scan(this.db, &result); err != nil {
 		return nil, err
@@ -32,7 +33,7 @@ func (this *nestRepository) getFirstNode(ctx, pId int64) (result *nest.Node, err
 	sb.Selects("c.id", "c.ctx", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
 	sb.From(this.table, "AS c")
 	if pId > 0 {
-		sb.LeftJoin(this.table, "AS p ON p.left_value < c.left_value AND p.right_value > c.right_value")
+		sb.LeftJoin(this.table, "AS p ON p.status != ? AND p.left_value < c.left_value AND p.right_value > c.right_value", kDelete)
 		sb.Where("p.id = ?", pId)
 		sb.Where("p.ctx = ?", ctx)
 		sb.Where("c.left_value = p.left_value + 1")
@@ -40,6 +41,7 @@ func (this *nestRepository) getFirstNode(ctx, pId int64) (result *nest.Node, err
 		sb.OrderBy("c.left_value ASC")
 	}
 	sb.Where("c.ctx = ?", ctx)
+	sb.Where("c.status != ?", kDelete)
 	sb.Limit(1)
 	if err = sb.Scan(this.db, &result); err != nil {
 		return nil, err
@@ -52,9 +54,10 @@ func (this *nestRepository) getPreviousNode(ctx, id int64) (result *nest.Node, e
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("p.id", "p.ctx", "p.name", "p.left_value", "p.right_value", "p.depth", "p.status", "p.created_on", "p.updated_on")
 	sb.From(this.table, "AS c")
-	sb.LeftJoin(this.table, "AS p ON p.right_value = c.left_value - 1")
+	sb.LeftJoin(this.table, "AS p ON p.status != ? AND p.right_value = c.left_value - 1", kDelete)
 	sb.Where("c.ctx = ?", ctx)
 	sb.Where("c.id = ?", id)
+	sb.Where("c.status != ?", kDelete)
 	sb.Where("p.ctx = ?", ctx)
 	sb.Limit(1)
 	if err = sb.Scan(this.db, &result); err != nil {
@@ -68,9 +71,10 @@ func (this *nestRepository) getNextNode(ctx, id int64) (result *nest.Node, err e
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("n.id", "n.ctx", "n.name", "n.left_value", "n.right_value", "n.depth", "n.status", "n.created_on", "n.updated_on")
 	sb.From(this.table, "AS c")
-	sb.LeftJoin(this.table, "AS n ON n.left_value = c.right_value + 1")
+	sb.LeftJoin(this.table, "AS n ON n.status != ? AND n.left_value = c.right_value + 1", kDelete)
 	sb.Where("c.ctx = ?", ctx)
 	sb.Where("c.id = ?", id)
+	sb.Where("c.status != ?", kDelete)
 	sb.Where("n.ctx = ?", ctx)
 	sb.Limit(1)
 	if err = sb.Scan(this.db, &result); err != nil {
@@ -85,16 +89,18 @@ func (this *nestRepository) getNodeList(ctx, pId int64, status nest.Status, dept
 	sb.From(this.table, "AS c")
 	if pId > 0 {
 		if withParent {
-			sb.LeftJoin(this.table, "AS pc ON pc.left_value <= c.left_value AND pc.right_value >= c.right_value")
+			sb.LeftJoin(this.table, "AS pc ON pc.status != ? AND pc.left_value <= c.left_value AND pc.right_value >= c.right_value", kDelete)
 		} else {
-			sb.LeftJoin(this.table, "AS pc ON pc.left_value < c.left_value AND pc.right_value > c.right_value")
+			sb.LeftJoin(this.table, "AS pc ON pc.status != ? AND pc.left_value < c.left_value AND pc.right_value > c.right_value", kDelete)
 		}
 		sb.Where("pc.id = ?", pId)
 		sb.Where("pc.ctx = ?", ctx)
 	}
 	sb.Where("c.ctx = ?", ctx)
-	if status != nest.Unknown {
+	if status != nest.Unknown && status != kDelete {
 		sb.Where("c.status = ?", status)
+	} else {
+		sb.Where("c.status != ?", kDelete)
 	}
 	if depth > 0 {
 		if pId > 0 {
@@ -127,6 +133,7 @@ func (this *nestRepository) getNodeWithId(ctx, id int64) (result *nest.Node, err
 	sb.From(this.table, "AS c")
 	sb.Where("c.id = ?", id)
 	sb.Where("c.ctx = ?", ctx)
+	sb.Where("c.status != ?", kDelete)
 	sb.Limit(1)
 	if err = sb.Scan(this.db, &result); err != nil {
 		return nil, err
@@ -138,7 +145,7 @@ func (this *nestRepository) getNodeWithName(ctx int, name string) (result *nest.
 	var sb = dbs.NewSelectBuilder()
 	sb.Selects("c.id", "c.ctx", "c.name", "c.left_value", "c.right_value", "c.depth", "c.status", "c.created_on", "c.updated_on")
 	sb.From(this.table, "AS c")
-	sb.Where("c.ctx = ? AND c.name = ?", ctx, name)
+	sb.Where("c.ctx = ? AND c.status != ? AND c.name = ?", ctx, kDelete, name)
 	sb.Limit(1)
 	if err = sb.Scan(this.db, &result); err != nil {
 		return nil, err
@@ -193,16 +200,18 @@ func (this *nestRepository) getChildrenIdList(ctx, pId int64, status nest.Status
 	sb.From(this.table, "AS c")
 	if pId > 0 {
 		if withParent {
-			sb.LeftJoin(this.table, "AS pc ON pc.left_value <= c.left_value AND pc.right_value >= c.right_value")
+			sb.LeftJoin(this.table, "AS pc ON pc.status != ? AND pc.left_value <= c.left_value AND pc.right_value >= c.right_value", kDelete)
 		} else {
-			sb.LeftJoin(this.table, "AS pc ON pc.left_value < c.left_value AND pc.right_value > c.right_value")
+			sb.LeftJoin(this.table, "AS pc ON pc.status != ? AND pc.left_value < c.left_value AND pc.right_value > c.right_value", kDelete)
 		}
 		sb.Where("pc.id = ?", pId)
 		sb.Where("pc.ctx = ?", ctx)
 	}
 	sb.Where("c.ctx = ?", ctx)
-	if status != nest.Unknown {
+	if status != nest.Unknown && status != kDelete {
 		sb.Where("c.status = ?", status)
+	} else {
+		sb.Where("c.status != ?", kDelete)
 	}
 	if depth > 0 {
 		if pId > 0 {
@@ -235,8 +244,11 @@ func (this *nestRepository) getPathList(ctx, id int64, status nest.Status, withC
 	}
 	sb.Where("sc.id = ?", id)
 	sb.Where("sc.ctx = ?", ctx)
-	if status != nest.Unknown {
+	sb.Where("sc.status != ?", kDelete)
+	if status != nest.Unknown && status != kDelete {
 		sb.Where("c.status = ?", status)
+	} else {
+		sb.Where("c.status != ?", kDelete)
 	}
 	sb.OrderBy("c.left_value")
 	if err = sb.Scan(this.db, &result); err != nil {
@@ -251,9 +263,12 @@ func (this *nestRepository) getParent(ctx, id int64, status nest.Status) (result
 	sb.From(this.table, "AS sc")
 	sb.LeftJoin(this.table, "AS c ON c.ctx = sc.ctx AND c.left_value < sc.left_value AND c.right_value > sc.right_value")
 	sb.Where("sc.id = ?", id)
+	sb.Where("sc.status != ?", kDelete)
 	sb.Where("c.ctx = ?", ctx)
-	if status != nest.Unknown {
+	if status != nest.Unknown && status != kDelete {
 		sb.Where("c.status = ?", status)
+	} else {
+		sb.Where("c.status != ?", kDelete)
 	}
 	sb.Limit(1)
 	sb.OrderBy("c.left_value DESC")

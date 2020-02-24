@@ -82,14 +82,10 @@ type Repository interface {
 	// UpdateNodeName 更新节点名称
 	UpdateNodeName(ctx, id int64, name string) (err error)
 
-	// UpdateNodeStatus 更新节点状态
+	// UpdateNodeStatus 更新节点状态，当设置为禁用状态的时候，其子节点会一起设置为禁用状态，设置为启用状态的时候，不会更新子节点的状态
 	// id: 被更新节点的 id；
 	// status: 新的状态；
-	// updateType:
-	// 		0、更新当前节点的状态，如果有子节点，则不能设置为无效；
-	// 		1、子节点的状态会一起更新，不会改变父子关系；
-	// 		2、子节点的状态不会受到影响，并且所有子节点会向上移动一级（只针对把状态设置为 无效 的时候）；
-	UpdateNodeStatus(ctx, id int64, status Status, updateType int) (err error)
+	UpdateNodeStatus(ctx, id int64, status Status) (err error)
 
 	// MoveToRoot 将指定节点调整为顶级节点
 	MoveToRoot(ctx, id int64) (err error)
@@ -118,4 +114,7 @@ type Repository interface {
 
 	// MoveTo 移动节点
 	MoveTo(ctx, id, rId int64, position Position) (err error)
+
+	// RemoveNode 删除节点，其子节点会一起删除，删除的节点不能恢复
+	RemoveNode(ctx, id int64) (err error)
 }
