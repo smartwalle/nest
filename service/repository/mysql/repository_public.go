@@ -66,32 +66,38 @@ func (this *nestRepository) GetNextNode(ctx, id int64) (result *nest.Node, err e
 	return this.getNextNode(ctx, id)
 }
 
-func (this *nestRepository) GetChildren(ctx, pId int64, status nest.Status, depth int) (result []*nest.Node, err error) {
-	return this.getNodeList(ctx, pId, status, depth, "", 0, 0, false)
+func (this *nestRepository) GetChildNodes(ctx, pId int64, status nest.Status, depth int) (result []*nest.Node, err error) {
+	return this.getNodes(ctx, pId, status, depth, "", 0, 0, false)
 }
 
-func (this *nestRepository) GetChildrenIdList(ctx, pId int64, status nest.Status, depth int) (result []int64, err error) {
-	return this.getChildrenIdList(ctx, pId, status, depth, false)
+func (this *nestRepository) GetChildNodeIds(ctx, pId int64, status nest.Status, depth int) (result []int64, err error) {
+	return this.getNodeIds(ctx, pId, status, depth, "", 0, 0, false)
 }
 
-func (this *nestRepository) GetChildrenPathList(ctx, pId int64, status nest.Status, depth int) (result []*nest.Node, err error) {
-	return this.getNodeList(ctx, pId, status, depth, "", 0, 0, true)
+// GetChildNodePaths 获取指定节点的子节点，返回的节点列表包括当前节点
+func (this *nestRepository) GetChildNodePaths(ctx, pId int64, status nest.Status, depth int) (result []*nest.Node, err error) {
+	return this.getNodes(ctx, pId, status, depth, "", 0, 0, true)
 }
 
-func (this *nestRepository) GetChildrenPathIdList(ctx, pId int64, status nest.Status, depth int) (result []int64, err error) {
-	return this.getChildrenIdList(ctx, pId, status, depth, true)
+// GetChildNodePathIds 获取指定节点的子节点 id 列表，返回的 id 列表包含当前节点 id
+func (this *nestRepository) GetChildNodePathIds(ctx, pId int64, status nest.Status, depth int) (result []int64, err error) {
+	return this.getNodeIds(ctx, pId, status, depth, "", 0, 0, true)
 }
 
-func (this *nestRepository) GetParentList(ctx, id int64, status nest.Status) (result []*nest.Node, err error) {
-	return this.getPathList(ctx, id, status, false)
+func (this *nestRepository) GetParentNodes(ctx, id int64, status nest.Status) (result []*nest.Node, err error) {
+	return this.getParentNodes(ctx, id, status, false)
 }
 
-func (this *nestRepository) GetParentPathList(ctx, id int64, status nest.Status) (result []*nest.Node, err error) {
-	return this.getPathList(ctx, id, status, true)
+func (this *nestRepository) GetNodePaths(ctx, id int64, status nest.Status) (result []*nest.Node, err error) {
+	return this.getParentNodes(ctx, id, status, true)
 }
 
-func (this *nestRepository) GetNodeList(ctx, pId int64, status nest.Status, depth int, name string, limit, offset int64, withParent bool) (result []*nest.Node, err error) {
-	return this.getNodeList(ctx, pId, status, depth, name, limit, offset, withParent)
+func (this *nestRepository) GetNodes(ctx, pId int64, status nest.Status, depth int, name string, limit, offset int64, withParent bool) (result []*nest.Node, err error) {
+	return this.getNodes(ctx, pId, status, depth, name, limit, offset, withParent)
+}
+
+func (this *nestRepository) GetNodeIds(ctx, pId int64, status nest.Status, depth int, name string, limit, offset int64, withParent bool) (result []int64, err error) {
+	return this.getNodeIds(ctx, pId, status, depth, name, limit, offset, withParent)
 }
 
 func (this *nestRepository) UpdateNodeName(ctx, id int64, name string) (err error) {

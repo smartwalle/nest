@@ -95,7 +95,7 @@ func (this *nestRepository) updateNodeStatus(ctx, id int64, status nest.Status, 
 			return err
 		}
 	case 0:
-		if status == nest.Disable && node.IsLeaf() == false {
+		if status == nest.Disable && node.HasChildNodes() == true {
 			return nest.ErrNotLeafNode
 		}
 		var ub = dbs.NewUpdateBuilder()
@@ -250,8 +250,8 @@ func (this *nestRepository) moveNode(position nest.Position, ctx, id, rId int64)
 	//}
 
 	// 查询出被移动节点的所有子节点
-	//children, err := this.getNodeList(node.Id, 0, 0)
-	children, err := this.getNodeList(node.Ctx, node.Id, nest.All, 0, "", 0, 0, true)
+	//children, err := this.getNodes(node.Id, 0, 0)
+	children, err := this.getNodes(node.Ctx, node.Id, nest.All, 0, "", 0, 0, true)
 	if err != nil {
 		return err
 	}

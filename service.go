@@ -51,25 +51,19 @@ type Repository interface {
 	// GetNextNode 获取相邻的下一节点(后面的节点)
 	GetNextNode(ctx, id int64) (result *Node, err error)
 
-	// GetChildren 获取指定节点的子节点
-	GetChildren(ctx, pId int64, status Status, depth int) (result []*Node, err error)
+	// GetChildNodes 获取指定节点的子节点
+	GetChildNodes(ctx, pId int64, status Status, depth int) (result []*Node, err error)
 
-	// GetChildrenIdList 获取指定节点的子节点 id 列表
-	GetChildrenIdList(ctx, pId int64, status Status, depth int) (result []int64, err error)
+	// GetChildNodeIds 获取指定节点的子节点 id 列表
+	GetChildNodeIds(ctx, pId int64, status Status, depth int) (result []int64, err error)
 
-	// GetChildrenPathList 获取指定节点的子节点，返回的节点列表包括当前节点
-	GetChildrenPathList(ctx, pId int64, status Status, depth int) (result []*Node, err error)
+	// GetParentNodes 获取指定节点到 root 节点的完整节点列表，返回的节点列表不包括当前节点
+	GetParentNodes(ctx, id int64, status Status) (result []*Node, err error)
 
-	// GetChildrenPathIdList 获取指定节点的子节点 id 列表，返回的 id 列表包含当前节点 id
-	GetChildrenPathIdList(ctx, pId int64, status Status, depth int) (result []int64, err error)
+	// GetNodePaths 获取指定节点到 root 节点的完整节点列表，返回的节点列表包括当前节点
+	GetNodePaths(ctx, id int64, status Status) (result []*Node, err error)
 
-	// GetParentList 获取指定节点到 root 节点的完整节点列表，返回的节点列表不包括当前节点
-	GetParentList(ctx, id int64, status Status) (result []*Node, err error)
-
-	// GetParentPathList 获取指定节点到 root 节点的完整节点列表，返回的节点列表包括当前节点
-	GetParentPathList(ctx, id int64, status Status) (result []*Node, err error)
-
-	// GetNodeList 获取节点列表
+	// GetNodes 获取节点列表
 	// ctx: 指定筛选节点的类型；
 	// pId: 父节点 id；
 	// status: 指定筛选节点的状态；
@@ -77,7 +71,10 @@ type Repository interface {
 	// name: 模糊匹配 name 字段；
 	// limit: 返回数据数量；
 	// withParent: 如果有传递 pId 参数，将可以通过此参数设定是否需要返回 pId 对应的节点信息；
-	GetNodeList(ctx, pId int64, status Status, depth int, name string, limit, offset int64, withParent bool) (result []*Node, err error)
+	GetNodes(ctx, pId int64, status Status, depth int, name string, limit, offset int64, withParent bool) (result []*Node, err error)
+
+	// GetNodeIds 功能与 GetNodes 一致，只不过返回的数据只包含节点的 id
+	GetNodeIds(ctx, pId int64, status Status, depth int, name string, limit, offset int64, withParent bool) (result []int64, err error)
 
 	// UpdateNodeName 更新节点名称
 	UpdateNodeName(ctx, id int64, name string) (err error)

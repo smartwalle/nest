@@ -32,8 +32,8 @@ type Node struct {
 	UpdatedOn  *time.Time `json:"updated_on,omitempty"      sql:"updated_on"`
 }
 
-func (this *Node) IsLeaf() bool {
-	return this.LeftValue+1 == this.RightValue
+func (this *Node) HasChildNodes() bool {
+	return this.RightValue-this.LeftValue > 1
 }
 
 func (this *Node) IsValid() bool {

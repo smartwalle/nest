@@ -14,8 +14,6 @@ func main() {
 
 	var ctx int64 = 1
 
-	m.UpdateNodeStatus(ctx, 11, nest.Enable)
-
 	//var nId int64 = 0
 	//-----
 	//nId, _ = m.AddRoot(ctx, "新闻分类", nest.Enable)
@@ -88,23 +86,13 @@ func main() {
 
 	//m.MoveToLast(ctx, 11, 1)
 
-	var nodeList, err = m.GetNodeList(ctx, 0, nest.Enable, 0, "", 0, 0, false)
+	var nodeList, err = m.GetNodes(ctx, 0, nest.Enable, 0, "", 0, 0, false)
 	fmt.Println(err)
 
 	for _, node := range nodeList {
 		for i := 0; i < node.Depth; i++ {
 			fmt.Print("-")
 		}
-		fmt.Println(node.Ctx, node.Id, node.IsLeaf(), node.Name, node.LeftValue, node.RightValue)
+		fmt.Println(node.Ctx, node.Id, node.HasChildNodes(), node.Name, node.LeftValue, node.RightValue)
 	}
-	//
-	//nodeList, err = m.GetNodeList(ctx, 0, nest.Enable, 0, "", 0, 0, false)
-	//fmt.Println(err)
-	//
-	//for _, node := range nodeList {
-	//	for i := 0; i < node.Depth; i++ {
-	//		fmt.Print("-")
-	//	}
-	//	fmt.Println(node.Ctx, node.Id, node.IsLeaf(), node.Name, node.LeftValue, node.RightValue)
-	//}
 }
