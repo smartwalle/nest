@@ -1,4 +1,4 @@
-package mysql
+package sql
 
 import (
 	"github.com/smartwalle/dbs"
@@ -188,8 +188,10 @@ func (this *nestRepository) insertNodeToRight(rNode *nest.Node, name string, sta
 
 func (this *nestRepository) insertNode(ctx int64, name string, leftValue, rightValue, depth int, status nest.Status) (result int64, err error) {
 	var now = time.Now()
+	var nId = dbs.Next()
 	var ib = dbs.NewInsertBuilder()
 	ib.Table(this.table)
+	ib.SET("id", nId)
 	ib.SET("ctx", ctx)
 	ib.SET("name", name)
 	ib.SET("left_value", leftValue)
@@ -198,10 +200,9 @@ func (this *nestRepository) insertNode(ctx int64, name string, leftValue, rightV
 	ib.SET("status", status)
 	ib.SET("created_on", now)
 	ib.SET("updated_on", now)
-	sResult, err := ib.Exec(this.db)
+	_, err = ib.Exec(this.db)
 	if err != nil {
 		return 0, err
 	}
-	result, _ = sResult.LastInsertId()
-	return result, err
+	return nId, err
 }

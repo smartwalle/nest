@@ -1,9 +1,10 @@
-package mysql
+package sql
 
 import (
 	"fmt"
 	"github.com/smartwalle/dbs"
 	"github.com/smartwalle/nest"
+	"strings"
 )
 
 const kDelete nest.Status = -1 // 删除
@@ -41,7 +42,12 @@ func (this *nestRepository) initTable() error {
 	var tx = dbs.MustTx(this.db)
 
 	var cb = dbs.NewBuilder("")
-	cb.Format(nestSQL, this.table, this.table, this.table, this.table, this.table, this.table)
+
+	if cb.GetDialect() == dbs.DialectPostgreSQL {
+		cb.Format(strings.ReplaceAll(initPostgreSQLTable, "nest", this.table))
+	} else {
+		cb.Format(initMySQLTable, this.table, this.table, this.table, this.table, this.table, this.table)
+	}
 	if _, err := cb.Exec(tx); err != nil {
 		return err
 	}

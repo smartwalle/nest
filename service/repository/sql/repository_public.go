@@ -1,4 +1,4 @@
-package mysql
+package sql
 
 import (
 	"github.com/smartwalle/nest"
