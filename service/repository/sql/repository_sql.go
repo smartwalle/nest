@@ -2,7 +2,7 @@ package sql
 
 const initMySQLTable = "" +
 	"CREATE TABLE IF NOT EXISTS `%s` (" +
-	"`id` int(11) NOT NULL AUTO_INCREMENT," +
+	"`id` bigint(20) NOT NULL AUTO_INCREMENT," +
 	"`ctx` int(11) DEFAULT '0'," +
 	"`name` varchar(128) DEFAULT NULL," +
 	"`left_value` int(11) DEFAULT NULL," +

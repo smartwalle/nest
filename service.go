@@ -7,6 +7,9 @@ type Repository interface {
 
 	WithTx(tx dbs.TX) Repository
 
+	// UseIdGenerator 设置 id 生成器，默认使用 dbs 库提供的 id 生成器
+	UseIdGenerator(g dbs.IdGenerator)
+
 	// AddRoot 添加顶级节点
 	AddRoot(ctx int64, name string, status Status) (result int64, err error)
 

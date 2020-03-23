@@ -10,14 +10,16 @@ import (
 const kDelete nest.Status = -1 // 删除
 
 type nestRepository struct {
-	db    dbs.DB
-	table string
+	db          dbs.DB
+	table       string
+	idGenerator dbs.IdGenerator
 }
 
 func NewRepository(db dbs.DB, table string) nest.Repository {
 	var r = &nestRepository{}
 	r.db = db
 	r.table = table
+	r.idGenerator = dbs.GetIdGenerator()
 
 	if err := r.initTable(); err != nil {
 		panic(fmt.Sprintf("创建 %s 失败, 错误信息为: %v", table, err))
@@ -36,6 +38,10 @@ func (this *nestRepository) WithTx(tx dbs.TX) nest.Repository {
 	var nRepo = *this
 	nRepo.db = tx
 	return &nRepo
+}
+
+func (this *nestRepository) UseIdGenerator(g dbs.IdGenerator) {
+	this.idGenerator = g
 }
 
 func (this *nestRepository) initTable() error {
