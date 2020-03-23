@@ -188,7 +188,7 @@ func (this *nestRepository) insertNodeToRight(rNode *nest.Node, name string, sta
 
 func (this *nestRepository) insertNode(ctx int64, name string, leftValue, rightValue, depth int, status nest.Status) (result int64, err error) {
 	var now = time.Now()
-	var nId = dbs.Next()
+	var nId = this.idGenerator.Next()
 	var ib = dbs.NewInsertBuilder()
 	ib.Table(this.table)
 	ib.SET("id", nId)
