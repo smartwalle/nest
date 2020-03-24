@@ -79,24 +79,24 @@ func (this *Repository) insertNodeToRoot(rNode *nest.Node, name string, status n
 
 func (this *Repository) insertNodeToFirst(rNode *nest.Node, name string, status nest.Status) (result int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
-	ubLeft.UseDialect(this.Dialect)
-	ubLeft.Table(this.Table)
+	ubLeft.UseDialect(this.dialect)
+	ubLeft.Table(this.table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", rNode.Ctx, rNode.LeftValue)
 	ubLeft.Where("status != ?", Delete)
-	if _, err = ubLeft.Exec(this.DB); err != nil {
+	if _, err = ubLeft.Exec(this.db); err != nil {
 		return 0, err
 	}
 
 	var ubRight = dbs.NewUpdateBuilder()
-	ubRight.UseDialect(this.Dialect)
-	ubRight.Table(this.Table)
+	ubRight.UseDialect(this.dialect)
+	ubRight.Table(this.table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value > ?", rNode.Ctx, rNode.LeftValue)
 	ubRight.Where("status != ?", Delete)
-	if _, err = ubRight.Exec(this.DB); err != nil {
+	if _, err = ubRight.Exec(this.db); err != nil {
 		return 0, err
 	}
 
@@ -108,24 +108,24 @@ func (this *Repository) insertNodeToFirst(rNode *nest.Node, name string, status 
 
 func (this *Repository) insertNodeToLast(rNode *nest.Node, name string, status nest.Status) (result int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
-	ubLeft.UseDialect(this.Dialect)
-	ubLeft.Table(this.Table)
+	ubLeft.UseDialect(this.dialect)
+	ubLeft.Table(this.table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", rNode.Ctx, rNode.RightValue)
 	ubLeft.Where("status != ?", Delete)
-	if _, err = ubLeft.Exec(this.DB); err != nil {
+	if _, err = ubLeft.Exec(this.db); err != nil {
 		return 0, err
 	}
 
 	var ubRight = dbs.NewUpdateBuilder()
-	ubRight.UseDialect(this.Dialect)
-	ubRight.Table(this.Table)
+	ubRight.UseDialect(this.dialect)
+	ubRight.Table(this.table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value >= ?", rNode.Ctx, rNode.RightValue)
 	ubRight.Where("status != ?", Delete)
-	if _, err = ubRight.Exec(this.DB); err != nil {
+	if _, err = ubRight.Exec(this.db); err != nil {
 		return 0, err
 	}
 
@@ -138,24 +138,24 @@ func (this *Repository) insertNodeToLast(rNode *nest.Node, name string, status n
 
 func (this *Repository) insertNodeToLeft(rNode *nest.Node, name string, status nest.Status) (result int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
-	ubLeft.UseDialect(this.Dialect)
-	ubLeft.Table(this.Table)
+	ubLeft.UseDialect(this.dialect)
+	ubLeft.Table(this.table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value >= ?", rNode.Ctx, rNode.LeftValue)
 	ubLeft.Where("status != ?", Delete)
-	if _, err = ubLeft.Exec(this.DB); err != nil {
+	if _, err = ubLeft.Exec(this.db); err != nil {
 		return 0, err
 	}
 
 	var ubRight = dbs.NewUpdateBuilder()
-	ubRight.UseDialect(this.Dialect)
-	ubRight.Table(this.Table)
+	ubRight.UseDialect(this.dialect)
+	ubRight.Table(this.table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value >= ?", rNode.Ctx, rNode.LeftValue)
 	ubRight.Where("status != ?", Delete)
-	if _, err = ubRight.Exec(this.DB); err != nil {
+	if _, err = ubRight.Exec(this.db); err != nil {
 		return 0, err
 	}
 
@@ -167,24 +167,24 @@ func (this *Repository) insertNodeToLeft(rNode *nest.Node, name string, status n
 
 func (this *Repository) insertNodeToRight(rNode *nest.Node, name string, status nest.Status) (result int64, err error) {
 	var ubLeft = dbs.NewUpdateBuilder()
-	ubLeft.UseDialect(this.Dialect)
-	ubLeft.Table(this.Table)
+	ubLeft.UseDialect(this.dialect)
+	ubLeft.Table(this.table)
 	ubLeft.SET("left_value", dbs.SQL("left_value + 2"))
 	ubLeft.SET("updated_on", time.Now())
 	ubLeft.Where("ctx = ? AND left_value > ?", rNode.Ctx, rNode.RightValue)
 	ubLeft.Where("status != ?", Delete)
-	if _, err = ubLeft.Exec(this.DB); err != nil {
+	if _, err = ubLeft.Exec(this.db); err != nil {
 		return 0, err
 	}
 
 	var ubRight = dbs.NewUpdateBuilder()
-	ubRight.UseDialect(this.Dialect)
-	ubRight.Table(this.Table)
+	ubRight.UseDialect(this.dialect)
+	ubRight.Table(this.table)
 	ubRight.SET("right_value", dbs.SQL("right_value + 2"))
 	ubRight.SET("updated_on", time.Now())
 	ubRight.Where("ctx = ? AND right_value > ?", rNode.Ctx, rNode.RightValue)
 	ubRight.Where("status != ?", Delete)
-	if _, err = ubRight.Exec(this.DB); err != nil {
+	if _, err = ubRight.Exec(this.db); err != nil {
 		return 0, err
 	}
 
@@ -196,10 +196,10 @@ func (this *Repository) insertNodeToRight(rNode *nest.Node, name string, status 
 
 func (this *Repository) insertNode(ctx int64, name string, leftValue, rightValue, depth int, status nest.Status) (result int64, err error) {
 	var now = time.Now()
-	var nId = this.IdGenerator.Next()
+	var nId = this.idGenerator.Next()
 	var ib = dbs.NewInsertBuilder()
-	ib.UseDialect(this.Dialect)
-	ib.Table(this.Table)
+	ib.UseDialect(this.dialect)
+	ib.Table(this.table)
 	ib.SET("id", nId)
 	ib.SET("ctx", ctx)
 	ib.SET("name", name)
@@ -209,7 +209,7 @@ func (this *Repository) insertNode(ctx int64, name string, leftValue, rightValue
 	ib.SET("status", status)
 	ib.SET("created_on", now)
 	ib.SET("updated_on", now)
-	_, err = ib.Exec(this.DB)
+	_, err = ib.Exec(this.db)
 	if err != nil {
 		return 0, err
 	}

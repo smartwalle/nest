@@ -24,7 +24,7 @@ func NewRepository(db dbs.DB, table string) nest.Repository {
 
 func (this *repository) initTable() error {
 	var rawText = "" +
-		"create Table if not exists nest(" +
+		"create table if not exists nest(" +
 		"id bigint not null constraint nest_pk primary key," +
 		"ctx integer default 0," +
 		"name varchar(128)," +
@@ -40,9 +40,9 @@ func (this *repository) initTable() error {
 		"create index if not exists nest_ctx_right_value_index on nest (ctx, right_value);" +
 		"create index if not exists nest_id_ctx_index on nest (id, ctx);"
 
-	var sql = strings.ReplaceAll(rawText, "nest", this.Table)
+	var sql = strings.ReplaceAll(rawText, "nest", this.Table())
 	var rb = dbs.NewBuilder(sql)
-	if _, err := rb.Exec(this.DB); err != nil {
+	if _, err := rb.Exec(this.DB()); err != nil {
 		return err
 	}
 	return nil

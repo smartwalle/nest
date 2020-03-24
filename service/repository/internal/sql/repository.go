@@ -9,40 +9,48 @@ import (
 const Delete nest.Status = -1 // 删除
 
 type Repository struct {
-	DB          dbs.DB
-	Table       string
-	Dialect     dbs.Dialect
-	IdGenerator dbs.IdGenerator
+	db          dbs.DB
+	table       string
+	dialect     dbs.Dialect
+	idGenerator dbs.IdGenerator
 }
 
 func NewRepository(db dbs.DB, dialect dbs.Dialect, table string) *Repository {
 	var r = &Repository{}
-	r.DB = db
+	r.db = db
 
 	table = strings.TrimSpace(table)
 	if table == "" {
 		table = "nest"
 	}
 
-	r.Table = table
-	r.IdGenerator = dbs.GetIdGenerator()
-	r.Dialect = dialect
+	r.table = table
+	r.idGenerator = dbs.GetIdGenerator()
+	r.dialect = dialect
 	return r
 }
 
 func (this *Repository) BeginTx() (dbs.TX, nest.Repository) {
-	var tx = dbs.MustTx(this.DB)
+	var tx = dbs.MustTx(this.db)
 	var nRepo = *this
-	nRepo.DB = tx
+	nRepo.db = tx
 	return tx, &nRepo
 }
 
 func (this *Repository) WithTx(tx dbs.TX) nest.Repository {
 	var nRepo = *this
-	nRepo.DB = tx
+	nRepo.db = tx
 	return &nRepo
 }
 
 func (this *Repository) UseIdGenerator(g dbs.IdGenerator) {
-	this.IdGenerator = g
+	this.idGenerator = g
+}
+
+func (this *Repository) DB() dbs.DB {
+	return this.db
+}
+
+func (this *Repository) Table() string {
+	return this.table
 }

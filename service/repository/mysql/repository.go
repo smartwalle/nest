@@ -42,9 +42,9 @@ func (this *repository) initTable() error {
 		"KEY `nest_ctx_left_value_index` (`ctx`,`left_value`)" +
 		");"
 
-	var sql = strings.ReplaceAll(rawText, "nest", this.Table)
+	var sql = strings.ReplaceAll(rawText, "nest", this.Table())
 	var rb = dbs.NewBuilder(sql)
-	if _, err := rb.Exec(this.DB); err != nil {
+	if _, err := rb.Exec(this.DB()); err != nil {
 		return err
 	}
 	return nil
