@@ -2,16 +2,16 @@ package main
 
 import (
 	"fmt"
+	//_ "github.com/go-sql-driver/mysql"
 	"github.com/smartwalle/dbs"
 	"github.com/smartwalle/nest"
 	"github.com/smartwalle/nest/service/repository/mysql"
-	//_ "github.com/go-sql-driver/mysql"
 	//_ "github.com/lib/pq"
 )
 
 // 如需要测试，在 mod 中添加以下依赖
-// github.com/go-sql-driver/mysql v1.4.1
-// github.com/lib/pq v1.3.0
+//github.com/go-sql-driver/mysql v1.4.1
+//github.com/lib/pq v1.3.0
 //
 // import 中添加以下包导入
 // _ "github.com/go-sql-driver/mysql"

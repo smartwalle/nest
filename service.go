@@ -7,6 +7,8 @@ type Repository interface {
 
 	WithTx(tx dbs.TX) Repository
 
+	Dialect() dbs.Dialect
+
 	// UseIdGenerator 设置 id 生成器，默认使用 dbs 库提供的 id 生成器
 	UseIdGenerator(g dbs.IdGenerator)
 
