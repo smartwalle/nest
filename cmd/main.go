@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/smartwalle/dbs"
 	"github.com/smartwalle/nest"
-	"github.com/smartwalle/nest/service/repository/sql"
+	"github.com/smartwalle/nest/service/repository/mysql"
 )
 
 // 如需要测试，在 mod 中添加以下依赖
@@ -16,12 +16,11 @@ import (
 // _ "github.com/lib/pq"
 
 func main() {
-	dbs.UseDialect(dbs.DialectPostgreSQL)
-	var db, _ = dbs.NewSQL("postgres", "host=localhost port=5432 user=yang password=111 dbname=yang sslmode=disable", 10, 1)
+	//var pdb, _ = dbs.NewSQL("postgres", "host=localhost port=5432 user=yang password=111 dbname=yang sslmode=disable", 10, 1)
+	//var p = postgresql.NewRepository(pdb, "xxx")
 
-	//var db, _ = dbs.NewSQL("mysql", "root:yangfeng@tcp(127.0.0.1:3306)/tt?parseTime=true", 10, 1)
-
-	var m = sql.NewRepository(db, "xd")
+	var mdb, _ = dbs.NewSQL("mysql", "root:yangfeng@tcp(127.0.0.1:3306)/tt?parseTime=true", 10, 1)
+	var m = mysql.NewRepository(mdb, "xxx")
 
 	var ctx int64 = 1
 	var nId int64 = 0
