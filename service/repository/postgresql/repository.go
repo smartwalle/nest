@@ -47,3 +47,16 @@ func (this *repository) initTable() error {
 	}
 	return nil
 }
+
+func (this *repository) BeginTx() (dbs.TX, nest.Repository) {
+	var nRepo = *this
+	var tx dbs.TX
+	tx, nRepo.Repository = this.Repository.BeginTx()
+	return tx, &nRepo
+}
+
+func (this *repository) WithTx(tx dbs.TX) nest.Repository {
+	var nRepo = *this
+	nRepo.Repository = this.Repository.WithTx(tx)
+	return &nRepo
+}

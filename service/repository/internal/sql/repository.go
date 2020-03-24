@@ -30,14 +30,14 @@ func NewRepository(db dbs.DB, dialect dbs.Dialect, table string) *Repository {
 	return r
 }
 
-func (this *Repository) BeginTx() (dbs.TX, nest.Repository) {
+func (this *Repository) BeginTx() (dbs.TX, *Repository) {
 	var tx = dbs.MustTx(this.db)
 	var nRepo = *this
 	nRepo.db = tx
 	return tx, &nRepo
 }
 
-func (this *Repository) WithTx(tx dbs.TX) nest.Repository {
+func (this *Repository) WithTx(tx dbs.TX) *Repository {
 	var nRepo = *this
 	nRepo.db = tx
 	return &nRepo

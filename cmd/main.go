@@ -5,6 +5,8 @@ import (
 	"github.com/smartwalle/dbs"
 	"github.com/smartwalle/nest"
 	"github.com/smartwalle/nest/service/repository/mysql"
+	//_ "github.com/go-sql-driver/mysql"
+	//_ "github.com/lib/pq"
 )
 
 // 如需要测试，在 mod 中添加以下依赖
