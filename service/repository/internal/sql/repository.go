@@ -37,14 +37,22 @@ func (this *Repository) Dialect() dbs.Dialect {
 	return this.dialect
 }
 
-func (this *Repository) BeginTx() (dbs.TX, *Repository) {
+func (this *Repository) BeginTx() (dbs.TX, nest.Repository) {
+	return this.ExBeginTx()
+}
+
+func (this *Repository) WithTx(tx dbs.TX) nest.Repository {
+	return this.ExWithTx(tx)
+}
+
+func (this *Repository) ExBeginTx() (dbs.TX, *Repository) {
 	var tx = dbs.MustTx(this.db)
 	var nRepo = *this
 	nRepo.db = tx
 	return tx, &nRepo
 }
 
-func (this *Repository) WithTx(tx dbs.TX) *Repository {
+func (this *Repository) ExWithTx(tx dbs.TX) *Repository {
 	var nRepo = *this
 	nRepo.db = tx
 	return &nRepo

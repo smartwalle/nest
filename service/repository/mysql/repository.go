@@ -53,12 +53,12 @@ func (this *repository) initTable() error {
 func (this *repository) BeginTx() (dbs.TX, nest.Repository) {
 	var nRepo = *this
 	var tx dbs.TX
-	tx, nRepo.Repository = this.Repository.BeginTx()
+	tx, nRepo.Repository = this.Repository.ExBeginTx()
 	return tx, &nRepo
 }
 
 func (this *repository) WithTx(tx dbs.TX) nest.Repository {
 	var nRepo = *this
-	nRepo.Repository = this.Repository.WithTx(tx)
+	nRepo.Repository = this.Repository.ExWithTx(tx)
 	return &nRepo
 }
