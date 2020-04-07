@@ -15,8 +15,8 @@ type Repository struct {
 	table       string
 }
 
-func NewRepository(db dbs.DB, dialect dbs.Dialect, table string) *Repository {
-	var r = &Repository{}
+func NewRepository(db dbs.DB, dialect dbs.Dialect, table string) Repository {
+	var r = Repository{}
 	r.db = db
 	r.idGenerator = dbs.GetIdGenerator()
 	r.dialect = dialect
@@ -38,24 +38,26 @@ func (this *Repository) Dialect() dbs.Dialect {
 }
 
 func (this *Repository) BeginTx() (dbs.TX, nest.Repository) {
-	return this.ExBeginTx()
+	var tx, repo = this.ExBeginTx()
+	return tx, &repo
 }
 
 func (this *Repository) WithTx(tx dbs.TX) nest.Repository {
-	return this.ExWithTx(tx)
+	var repo = this.ExWithTx(tx)
+	return &repo
 }
 
-func (this *Repository) ExBeginTx() (dbs.TX, *Repository) {
+func (this *Repository) ExBeginTx() (dbs.TX, Repository) {
 	var tx = dbs.MustTx(this.db)
 	var nRepo = *this
 	nRepo.db = tx
-	return tx, &nRepo
+	return tx, nRepo
 }
 
-func (this *Repository) ExWithTx(tx dbs.TX) *Repository {
+func (this *Repository) ExWithTx(tx dbs.TX) Repository {
 	var nRepo = *this
 	nRepo.db = tx
-	return &nRepo
+	return nRepo
 }
 
 func (this *Repository) UseIdGenerator(g dbs.IdGenerator) {

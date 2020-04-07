@@ -9,7 +9,7 @@ import (
 )
 
 type repository struct {
-	*sql.Repository
+	sql.Repository
 }
 
 func NewRepository(db dbs.DB, table string) nest.Repository {
