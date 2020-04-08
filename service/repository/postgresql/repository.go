@@ -26,10 +26,10 @@ func (this *repository) initTable() error {
 	var rawText = "" +
 		"create table if not exists nest(" +
 		"id bigint not null constraint nest_pk primary key," +
-		"ctx integer default 0," +
+		"ctx bigint default 0," +
 		"name varchar(128)," +
-		"left_value integer," +
-		"right_value integer," +
+		"left_value bigint," +
+		"right_value bigint," +
 		"depth integer," +
 		"status integer default 1," +
 		"created_on timestamp with time zone," +

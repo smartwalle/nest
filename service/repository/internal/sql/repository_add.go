@@ -194,7 +194,7 @@ func (this *Repository) insertNodeToRight(rNode *nest.Node, name string, status 
 	return result, nil
 }
 
-func (this *Repository) insertNode(ctx int64, name string, leftValue, rightValue, depth int, status nest.Status) (result int64, err error) {
+func (this *Repository) insertNode(ctx int64, name string, leftValue, rightValue int64, depth int, status nest.Status) (result int64, err error) {
 	var now = time.Now()
 	var nId = this.idGenerator.Next()
 	var ib = dbs.NewInsertBuilder()

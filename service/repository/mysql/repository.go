@@ -26,10 +26,10 @@ func (this *repository) initTable() error {
 	var rawText = "" +
 		"CREATE TABLE IF NOT EXISTS `nest` (" +
 		"`id` bigint(20) NOT NULL AUTO_INCREMENT," +
-		"`ctx` int(11) DEFAULT '0'," +
+		"`ctx` bigint(20) DEFAULT '0'," +
 		"`name` varchar(128) DEFAULT NULL," +
-		"`left_value` int(11) DEFAULT NULL," +
-		"`right_value` int(11) DEFAULT NULL," +
+		"`left_value` bigint(20) DEFAULT NULL," +
+		"`right_value` bigint(20) DEFAULT NULL," +
 		"`depth` int(11) DEFAULT NULL," +
 		"`status` int(11) DEFAULT '1'," +
 		"`created_on` datetime DEFAULT NULL," +

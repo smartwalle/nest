@@ -320,7 +320,7 @@ func (this *Repository) moveNodeWithPosition(position nest.Position, node, rNode
 	return nest.ErrUnknownPosition
 }
 
-func (this *Repository) moveToFirst(node, parent *nest.Node, updateIdList []int64, nodeLen int) (err error) {
+func (this *Repository) moveToFirst(node, parent *nest.Node, updateIdList []int64, nodeLen int64) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
@@ -367,7 +367,7 @@ func (this *Repository) moveToFirst(node, parent *nest.Node, updateIdList []int6
 	return nil
 }
 
-func (this *Repository) moveToLast(node, parent *nest.Node, updateIdList []int64, nodeLen int) (err error) {
+func (this *Repository) moveToLast(node, parent *nest.Node, updateIdList []int64, nodeLen int64) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
@@ -415,7 +415,7 @@ func (this *Repository) moveToLast(node, parent *nest.Node, updateIdList []int64
 	return nil
 }
 
-func (this *Repository) moveToLeft(node, rNode *nest.Node, updateIdList []int64, nodeLen int) (err error) {
+func (this *Repository) moveToLeft(node, rNode *nest.Node, updateIdList []int64, nodeLen int64) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点
@@ -462,7 +462,7 @@ func (this *Repository) moveToLeft(node, rNode *nest.Node, updateIdList []int64,
 	return nil
 }
 
-func (this *Repository) moveToRight(node, rNode *nest.Node, updateIdList []int64, nodeLen int) (err error) {
+func (this *Repository) moveToRight(node, rNode *nest.Node, updateIdList []int64, nodeLen int64) (err error) {
 	var now = time.Now()
 
 	// 移出空间用于存放被移动的节点及其子节点

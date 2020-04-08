@@ -24,8 +24,8 @@ type Node struct {
 	Id         int64      `json:"id"                        sql:"id"`
 	Ctx        int64      `json:"ctx"                       sql:"ctx"`
 	Name       string     `json:"name"                      sql:"name"`
-	LeftValue  int        `json:"left_value"                sql:"left_value"`
-	RightValue int        `json:"right_value"               sql:"right_value"`
+	LeftValue  int64      `json:"left_value"                sql:"left_value"`
+	RightValue int64      `json:"right_value"               sql:"right_value"`
 	Depth      int        `json:"depth"                     sql:"depth"`
 	Status     Status     `json:"status"                    sql:"status"`
 	CreatedOn  *time.Time `json:"created_on,omitempty"      sql:"created_on"`
