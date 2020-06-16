@@ -25,7 +25,7 @@ func NewRepository(db dbs.DB, table string) nest.Repository {
 func (this *repository) initTable() error {
 	var rawText = "" +
 		"CREATE TABLE IF NOT EXISTS `nest` (" +
-		"`id` bigint(20) NOT NULL AUTO_INCREMENT," +
+		"`id` bigint(20) NOT NULL," +
 		"`ctx` bigint(20) DEFAULT '0'," +
 		"`name` varchar(128) DEFAULT NULL," +
 		"`left_value` bigint(20) DEFAULT NULL," +
